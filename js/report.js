@@ -64,7 +64,14 @@ var testData = [ {
 	},
 
 	maturity : "",
-	severity : "REGRESSION"
+	severity : "REGRESSION",
+		actions = [
+		             {
+		 				name:"Run",
+		 				url:"http://etc...";
+		             	postData: "CUCUMBER_OPTIONS=--tags '"+s.tagList+"'"
+		 			}];
+		 			
 } ];
 
 var timeFormat = null;
@@ -144,6 +151,8 @@ function scenarioRowDataProvider(row, columnName) {
 		return "<div class='label label-" + color + "'>" + row[columnName] + "</div>";
 	case "maturity":
 		return "<div class='label label-primary'>" + row[columnName] + "</div>";
+	case "actions":
+		return createActionsCell(row[columnName]);
 	default:
 		return "columnName:" + row[columnName].name;
 	}
@@ -160,6 +169,18 @@ var severityColor = {
 	"PENDING" : "danger",
 	"RECENTLY DONE" : "warning",
 	"DONE" : "success"
+}
+
+function createActionsCell(actions){
+	if(!actions){
+		return "";
+	}
+	var result = "";
+	actions.forEach(function(action){
+		result += "<a href='"+action.url+">"+ action.name + " </a>";
+	});
+	
+	return result;
 }
 
 function createLastExecCell(row,lastExec) {

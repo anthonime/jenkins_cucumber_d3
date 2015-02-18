@@ -73,12 +73,11 @@ function processJson(jobsWithActiveConfiguration, config) {
 				result.allKos += config.KO_STATUSES.indexOf(severity)>-1?1:0;
 			}
 			//
-			s.
 			//
 			s.actions = [
             {
 				name:"Run",
-				//url:config.jenkinsUrl+"/job/" + config.rerunJobName + "/buildWithParameters";
+				url:config.jenkinsUrl+"/job/" + config.rerunJobName + "/build";
             	postData: "CUCUMBER_OPTIONS=--tags '"+s.tagList+"'"
 			}];
 			
