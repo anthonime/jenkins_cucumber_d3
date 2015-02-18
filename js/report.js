@@ -184,6 +184,8 @@ function rerun(job, params) {
 	});
 }
 
+function escape(str){ str = str.replace(/"/g, '\\"');str = str.replace(/'/g, "\\'");return str;}
+
 function createActionsCell(actions) {
 	if (!actions) {
 		return "";
@@ -191,7 +193,7 @@ function createActionsCell(actions) {
 	var result = "";
 	actions.forEach(function(action) {
 		var onclick = action.job ? "onclick=\"rerun('" + action.job + "','"
-				+ action.data + "')\"" : "";
+				+ escape(action.data) + "')\"" : "";
 		result += "<a href='" + action.url + "' " + onclick + ">" + action.name
 				+ " </a>";
 	});

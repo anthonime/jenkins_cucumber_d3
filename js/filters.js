@@ -75,13 +75,16 @@ function processJson(jobsWithActiveConfiguration, config) {
 						: 0;
 			}
 			//
+			
+			s.tagList = s.tags.map(function(d){return d.name;}).join(',');
+			var tagsOptions = s.tags.map(function(d){return "--tags '" + d.name "'";}).join(' ');
 			//
 			if(config.rerunJobName){
 			s.actions = [ {
 				name : "Run",
 				url : "javascript:void(0)",
-				job: config.jenkinsUrl + "/job/" + config.rerunJobName + "/build",
-				data: "CUCUMBER_OPTIONS=--tags '" + s.tagList + "'"
+				job: config.jenkinsUrl + "/job/" + config.rerunJobName + "/buildWithParameters",
+				data: "CUCUMBER_OPTIONS="+ tagsOptions;
 
 			} ];
 			}
