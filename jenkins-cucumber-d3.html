@@ -149,7 +149,7 @@
 					"PENDING", "RANDOMNESS" ];
 			if(!config.jenkinsUrl){
 				//default 
-				config.jenkinsUrl = "../..";
+				config.jenkinsUrl = window.location.protocol + "//" + window.location.host;
 			}  
 			if(!config.pendingTagName){
 				config.pendingTagName = "@pending";
