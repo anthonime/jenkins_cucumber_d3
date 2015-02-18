@@ -100,6 +100,8 @@ function showScenarios(node, data) {
 				switch (column) {
 				case "executions":
 					return "15%";
+				case "lastExecution":
+					return "5%";
 				default:
 					return null;
 				}
@@ -173,7 +175,11 @@ var severityColor = {
 }
 
 function rerun(job, params) {
-	d3.xhr(job).post(params, function(error, data) {
+	var json = JSON.stringify(params);
+	var postData = "json=" +  encodeURIComponent(json);
+	d3.xhr(job)
+	.header("Content-Type", "application/x-www-form-urlencoded")
+	.post(postData, function(error, data) {
 		// callback
 		if (error) {
 			console.log('ERROR', error);

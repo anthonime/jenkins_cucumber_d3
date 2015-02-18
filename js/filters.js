@@ -94,8 +94,7 @@ function processJson(jobsWithActiveConfiguration, config) {
 					url : "javascript:void(0)",
 					job : config.jenkinsUrl + "/job/" + config.rerunJobName
 							+ "/buildWithParameters",
-					data : "CUCUMBER_OPTIONS=" + tagsOptions
-
+					data : { "parameter": {"name": "CUCUMBER_OPTIONS", "value": tagsOptions}
 				} ];
 			}
 
