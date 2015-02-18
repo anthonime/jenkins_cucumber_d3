@@ -80,20 +80,8 @@ function processJson(jobsWithActiveConfiguration, config) {
 			s.actions = [ {
 				name : "Run",
 				url : "javascript:void(0)",
-				onclick : function() {
-					var jobUrl = config.jenkinsUrl + "/job/"
-							+ config.rerunJobName + "/build";
-					var params = "CUCUMBER_OPTIONS=--tags '" + s.tagList + "'";
-					d3.xhr(jobUrl).post(params, function(error, data) {
-						// callback
-						if(error){
-							console.log('ERROR',error);
-						} else {
-							console.log('SUCCESS',data);
-						}
-						
-					});
-				}
+				job: config.jenkinsUrl + "/job/" + config.rerunJobName + "/build",
+				data: "CUCUMBER_OPTIONS=--tags '" + s.tagList + "'"
 
 			} ];
 			}

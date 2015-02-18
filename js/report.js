@@ -3,8 +3,11 @@ var testData = [ {
 	scenario : {
 		name : "ETQU, blahblah",
 		url : "www.google.com",
-		tags : [{name:"@RTV-2212",line:5}],
-		tagList: "@RTV-x,@pending,@myfeature"
+		tags : [ {
+			name : "@RTV-2212",
+			line : 5
+		} ],
+		tagList : "@RTV-x,@pending,@myfeature"
 	},
 	feature : {
 		name : "AnalyseSauvegardées",
@@ -65,13 +68,10 @@ var testData = [ {
 
 	maturity : "",
 	severity : "REGRESSION",
-		actions :  [
-		             {
-		 				name:"Run",
-		 				url:"http://etc...",
-		             	postData: "CUCUMBER_OPTIONS=--tags"
-		 			}]
-		 			
+	actions : [ {
+	// TODO
+	} ]
+
 } ];
 
 var timeFormat = null;
@@ -145,10 +145,11 @@ function scenarioRowDataProvider(row, columnName) {
 		var execs = row[columnName];
 		return createExecProgress(row, execs);
 	case "lastExecution":
-		return createLastExecCell(row,row[columnName]);
+		return createLastExecCell(row, row[columnName]);
 	case "severity":
 		var color = severityColor[row[columnName]];
-		return "<div class='label label-" + color + "'>" + row[columnName] + "</div>";
+		return "<div class='label label-" + color + "'>" + row[columnName]
+				+ "</div>";
 	case "maturity":
 		return "<div class='label label-primary'>" + row[columnName] + "</div>";
 	case "actions":
@@ -171,31 +172,46 @@ var severityColor = {
 	"DONE" : "success"
 }
 
-function createActionsCell(actions){
-	if(!actions){
+function rerun(job, params) {
+	d3.xhr(job).post(params, function(error, data) {
+		// callback
+		if (error) {
+			console.log('ERROR', error);
+		} else {
+			console.log('SUCCESS', data);
+		}
+
+	});
+}
+
+function createActionsCell(actions) {
+	if (!actions) {
 		return "";
 	}
 	var result = "";
-	actions.forEach(function(action){
-		var onclick = action.onclick?"onclick='" + action.onclick + "'":""; 
-		result += "<a href='"+action.url+" " + onclick + ">"+ action.name + " </a>";
+	actions.forEach(function(action) {
+		var onclick = action.onclick ? "onclick='rerun(" + action.job + ","
+				+ action.data + ")'" : "";
+		result += "<a href='" + action.url + " " + onclick + ">" + action.name
+				+ " </a>";
 	});
-	
+
 	return result;
 }
 
-function createLastExecCell(row,lastExec) {
+function createLastExecCell(row, lastExec) {
 	if (!lastExec) {
 		return "n/a";
 	}
 	var color = lastExec.scenario.result == "FAILURE" ? "danger" : "success";
 	var classed = "label label-" + color;
 	var formattedTimestamp = timeFormat(new Date(lastExec.scenario.timestamp));
-	return "<div class='" + classed + "'>" + lastExec.scenario.result+ "</div> " 
-			+ "<a href='"+lastExec.build.url+"'>#" + lastExec.build.number + " </a> " 
-			+ "<span style=''> "+ formattedTimestamp + " </span> "
-			+ "<span style=''> " + formatDuration(lastExec.build.duration)+"</span> "
-			+ "<br><span style=''>Tags: " + row.scenario.tagList +"</span>";
+	return "<div class='" + classed + "'>" + lastExec.scenario.result
+			+ "</div> " + "<a href='" + lastExec.build.url + "'>#"
+			+ lastExec.build.number + " </a> " + "<span style=''> "
+			+ formattedTimestamp + " </span> " + "<span style=''> "
+			+ formatDuration(lastExec.build.duration) + "</span> "
+			+ "<br><span style=''>Tags: " + row.scenario.tagList + "</span>";
 }
 
 function createExecProgress(scenario, executions) {
