@@ -79,7 +79,7 @@ function processJson(jobsWithActiveConfiguration, config) {
             {
 				name:"Run",
 				//url:config.jenkinsUrl+"/job/" + config.rerunJobName + "/buildWithParameters";
-            	postData: "CUCUMBER_OPTIONS=--tags '"+scenario.tagList+"'"
+            	postData: "CUCUMBER_OPTIONS=--tags '"+s.tagList+"'"
 			}];
 			
 			//get all the features, jobs, and configurations
