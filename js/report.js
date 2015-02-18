@@ -177,7 +177,8 @@ function createActionsCell(actions){
 	}
 	var result = "";
 	actions.forEach(function(action){
-		result += "<a href='"+action.url+">"+ action.name + " </a>";
+		var onclick = action.onclick?"onclick='" + action.onclick + "'":""; 
+		result += "<a href='"+action.url+" " + onclick + ">"+ action.name + " </a>";
 	});
 	
 	return result;

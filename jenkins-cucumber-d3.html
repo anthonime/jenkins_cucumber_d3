@@ -36,6 +36,12 @@
 						<input id="pendingTagName" type="text" class="form-control" placeholder="Tag name to identify pending scenarios">
 					</div>
 				</form>
+				<div class="navbar-text">Rerun job name:</div>
+				<form class="navbar-form navbar-left">
+					<div class="form-group">
+						<input id="rerunJobName" type="text" class="form-control" placeholder="Name of the job to relaunch cucumber">
+					</div>
+				</form>
 			</div>
 			
 			<div class="nav navbar-nav collapse navbar-collapse navbar-right">
@@ -176,6 +182,7 @@
 			d3.select("#ftag").property("value", params.ftag);
 			d3.select("#jenkins_url").property("value", params.jenkinsUrl);
 			d3.select("#pendingTagName").property("value", params.pendingTagName);
+			d3.select("#rerunJobName").property("value", params.rerunJobName);
 			update();
 		}
 
@@ -231,6 +238,13 @@
 			var pendingTagName = $(this).val();
 			if(pendingTagName!=currentParams.pendingTagName){
 				currentParams.pendingTagName = pendingTagName;
+			}
+			jQuery.bbq.pushState(currentParams);
+		});
+		d3.select("#rerunJobName").on("blur", function(e) {
+			var rerunJobName = $(this).val();
+			if(rerunJobName!=currentParams.rerunJobName){
+				currentParams.rerunJobName = rerunJobName;
 			}
 			jQuery.bbq.pushState(currentParams);
 		});
