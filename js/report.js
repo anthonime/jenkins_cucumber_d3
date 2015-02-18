@@ -65,7 +65,7 @@ var testData = [ {
 
 	maturity : "",
 	severity : "REGRESSION",
-		actions = [
+		actions :  [
 		             {
 		 				name:"Run",
 		 				url:"http://etc...",
