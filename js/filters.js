@@ -76,15 +76,15 @@ function processJson(jobsWithActiveConfiguration, config) {
 			}
 			//
 
-			if (s.tags) {
-				s.tagList = s.tags.map(function(d) {
+			if (s.scenario.tags) {
+				s.scenario.tagList = s.scenario.tags.map(function(d) {
 					return d.name;
 				}).join(',');
 			}
 			
 			var tagsOptions = "";
-			if(s.tagList){
-				tagsOptions = s.tagList.split(",").map(function(d) {
+			if(s.scenario.tagList){
+				tagsOptions = s.scenario.tagList.split(",").map(function(d) {
 					return "--tags '" + d + "'";
 				}).join(' ');
 			}
