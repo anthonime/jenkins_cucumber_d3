@@ -77,14 +77,14 @@ function processJson(jobsWithActiveConfiguration, config) {
 			//
 			
 			s.tagList = s.tags.map(function(d){return d.name;}).join(',');
-			var tagsOptions = s.tags.map(function(d){return "--tags '" + d.name "'";}).join(' ');
+			var tagsOptions = s.tags.map(function(d){return "--tags '" + d.name  + "'";}).join(' ');
 			//
 			if(config.rerunJobName){
 			s.actions = [ {
 				name : "Run",
 				url : "javascript:void(0)",
 				job: config.jenkinsUrl + "/job/" + config.rerunJobName + "/buildWithParameters",
-				data: "CUCUMBER_OPTIONS="+ tagsOptions;
+				data: "CUCUMBER_OPTIONS="+ tagsOptions
 
 			} ];
 			}
