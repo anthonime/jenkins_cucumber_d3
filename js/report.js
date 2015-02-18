@@ -68,9 +68,9 @@ var testData = [ {
 		actions = [
 		             {
 		 				name:"Run",
-		 				url:"http://etc...";
+		 				url:"http://etc...",
 		             	postData: "CUCUMBER_OPTIONS=--tags '"+s.tagList+"'"
-		 			}];
+		 			}]
 		 			
 } ];
 
