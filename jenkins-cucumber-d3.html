@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Cucumber Jenkins Reports</title>
+
+<!-- Bootstrap -->
+<link href="css/bootstrap.min.css" rel="stylesheet">
+<link href="css/report.css" rel="stylesheet">
+
+<!-- script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script> -->
+<script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+<script src="js/report.js" charset="utf-8"></script>
+<script src="js/fetch.js" charset="utf-8"></script>
+<script src="js/filters.js" charset="utf-8"></script>
+<style>
+</style>
+</head>
+<body>
+	<nav class="navbar navbar-default">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<div class="navbar-brand">Cucumber reports</div>
+				<div class="navbar-text">Jenkins home:</div>
+				<form class="navbar-form navbar-left">
+					<div class="form-group">
+						<input id="jenkins_url" type="text" class="form-control" placeholder="Jenkins URL...">
+					</div>
+				</form>
+				<div class="navbar-text">Pending tag name:</div>
+				<form class="navbar-form navbar-left">
+					<div class="form-group">
+						<input id="pendingTagName" type="text" class="form-control" placeholder="Tag name to identify pending scenarios">
+					</div>
+				</form>
+			</div>
+			
+			<div class="nav navbar-nav collapse navbar-collapse navbar-right">
+				<p class="navbar-text ">Fork on <a href="https://github.com/anthonime/jenkins_cucumber_d3/" class="">GitHub</a></p>
+			</div>
+		</div>
+	</nav>
+	<div id="filters">
+		<form class="" action="#">
+			<div class="form-inline">
+				<p class="form-group" id="filters-status">
+					<label class="control-label">Severity:</label> <a
+						href="javascript:void(0)" class="btn btn-link"
+						data-status="ALL_KOS">Only KOs</a> <a href="javascript:void(0)"
+						class="btn btn-link" data-status="ALL">All</a> <a
+						href="javascript:void(0)" class="btn btn-success active"
+						data-status="OK">OK</a> <a href="javascript:void(0)"
+						class="btn btn-success active" data-status="FIXED">FIXED</a> <a
+						href="javascript:void(0)" class="btn btn-warning active"
+						data-status="RECENTLY_FIXED">RECENTLY FIXED</a> <a
+						href="javascript:void(0)" class="btn btn-danger active"
+						data-status="REGRESSION">REGRESSION</a> <a
+						href="javascript:void(0)" class="btn btn-default active"
+						data-status="PERSISTENT_REGRESSION">PERSISTENT REGRESSION</a> <a
+						href="javascript:void(0)" class="btn btn-default active"
+						data-status="KO">KO</a> <a href="javascript:void(0)"
+						class="btn btn-success active" data-status="DONE">DONE</a> <a
+						href="javascript:void(0)" class="btn btn-warning active"
+						data-status="RECENTLY_DONE">RECENTLY DONE</a> <a
+						href="javascript:void(0)" class="btn btn-danger active"
+						data-status="PENDING">PENDING</a> <a href="javascript:void(0)"
+						class="btn btn-default active" data-status="RANDOMNESS">RANDOMNESS</a>
+
+
+
+				</p>
+			</div>
+			<div class="form-inline">
+				<p class="form-group" id="filters-name">
+					<label class="control-label" for="fname">By name:</label> <input
+						class="form-control" type="text" id="fname" name="fname"
+						placeholder="regexp" />
+
+				</p>
+				<p class="form-group" id="filters-tag">
+					<label class="control-label" for="ftag">By tag:</label> <input
+						class="form-control" type="text" id="ftag" name="ftag"
+						placeholder="tag name" />
+
+				</p>
+			</div>
+			<div class="form-inline">
+				<p class="form-group" id="filters-category">
+					<label class="control-label" for="fjob">By job:</label> <select
+						class="form-control" id="fjob" name="fjob">
+						<option value="All jobs">All jobs</option>
+					</select> <label class="control-label" for="ffeature">By feature:</label> <select
+						class="form-control" id="ffeature" name="ffeature">
+						<option value="All features">All features</option>
+					</select> <label class="control-label" for="fconfig">By config:</label> <select
+						class="form-control" id="fconfig" name="fconfig">
+						<option value="All configs">All configs</option>
+					</select>
+				</p>
+			</div>
+			<!-- 			<div class="form-group"> -->
+			<!-- 				<label for="exampleInputEmail2">Email</label> <input type="email" -->
+			<!-- 					class="form-control" id="exampleInputEmail2" -->
+			<!-- 					placeholder="jane.doe@example.com"> -->
+			<!-- 			</div> -->
+		</form>
+	</div>
+	<div id="debugContainer" class="alert alert-info alert-dismissible">
+		<button type="button" class="close" data-dismiss="alert"
+			aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		</button>
+		<p id="debug"></p>
+	</div>
+	<div id="scenarios"></div>
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+	<script
+		src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script src="js/jquery.ba-bbq.min.js" charset="utf-8"></script>
+
+	<!-- Include all compiled plugins (below), or include individual files as needed -->
+	<script src="js/bootstrap.min.js"></script>
+	<script>
+		var fetching = false;
+		var remoteData = null;
+		var config = {
+
+		};
+		var currentParams = {};
+		//register hash change
+		//kind of "prepare from request" method 
+		$(window).bind('hashchange', function(e) {
+			parseParams();
+		})
+
+		parseParams();
+		//kind of "prepare from request" method
+		function parseParams() {
+			var params = $.deparam.fragment();
+			console.log(params);
+			config = params;
+			currentParams = jQuery.extend(true, {}, params);
+
+			//append the list of KO statuses to the config
+			config.KO_STATUSES = [ "REGRESSION", "PERSISTENT_REGRESSION", "KO",
+					"PENDING", "RANDOMNESS" ];
+			if(!config.jenkinsUrl){
+				//default 
+				config.jenkinsUrl = "../..";
+			}  
+			if(!config.pendingTagName){
+				config.pendingTagName = "@pending";
+			}
+				
+			applyFilters(params);
+		}
+
+		function applyFilters(params) {
+			if (params.fstatus && !Array.isArray(params.fstatus)) {
+				params.fstatus = [ params.fstatus ];
+			}
+			//status
+			d3.select("#filters-status").selectAll("a").classed("active",
+					function(d) {
+						if (!params.fstatus) {
+							return false;
+						}
+						var s = d3.select(this).attr("data-status");
+						return params.fstatus.indexOf(s) > -1;
+					});
+			//name
+			d3.select("#fname").property("value", params.fname);
+			d3.select("#ftag").property("value", params.ftag);
+			d3.select("#jenkins_url").property("value", params.jenkinsUrl);
+			d3.select("#pendingTagName").property("value", params.pendingTagName);
+			update();
+		}
+
+		//listens for filter changes
+		d3.selectAll("#filters-status a").on(
+				"click",
+				function(e) {
+					var btn = d3.select(this);
+					var status = btn.attr("data-status");
+					var active = !btn.classed("active");
+
+					if (status == "ALL") {
+						currentParams.fstatus = [];
+					} else if (status == "ALL_KOS") {
+						//copy 
+						currentParams.fstatus = config.KO_STATUSES.slice();
+					} else {
+						if (!currentParams.fstatus) {
+							currentParams.fstatus = [];
+						}
+						//remove the element from the array
+						currentParams.fstatus = currentParams.fstatus
+								.filter(function(d) {
+									return d != status;
+								});
+						if (active) {
+							//add it if necessary
+							currentParams.fstatus.push(status);
+						}
+					}
+					jQuery.bbq.pushState(currentParams);
+				});
+
+		d3.select("#fname").on("blur", function(e) {
+			var v = $("#fname").val();
+			currentParams.fname = v;
+			jQuery.bbq.pushState(currentParams);
+		});
+		d3.select("#ftag").on("blur", function(e) {
+			var v = $(this).val();
+			currentParams.ftag = v;
+			jQuery.bbq.pushState(currentParams);
+		});
+		d3.select("#jenkins_url").on("blur", function(e) {
+			var jenkinsUrl = $(this).val();
+			if(jenkinsUrl!=currentParams.jenkinsUrl){
+				currentParams.jenkinsUrl = jenkinsUrl;
+				remoteData = null;
+			}
+			jQuery.bbq.pushState(currentParams);
+		});
+		d3.select("#pendingTagName").on("blur", function(e) {
+			var pendingTagName = $(this).val();
+			if(pendingTagName!=currentParams.pendingTagName){
+				currentParams.pendingTagName = pendingTagName;
+			}
+			jQuery.bbq.pushState(currentParams);
+		});
+		
+		
+		d3.select("#filters-category").selectAll("select").on("change",
+				function(e) {
+					var v = this.value;
+					currentParams[this.name] = v;
+					jQuery.bbq.pushState(currentParams);
+				});
+
+		function showMessage(message,danger){
+			d3.select("#debugContainer")
+					.classed("alert-danger",danger?true:false)
+					.classed("alert-info",danger?false:true);
+			d3.select("#debug").text(message);
+			
+		}
+		function update() {
+			if (!remoteData && !fetching) {
+				fetching = true;
+				showMessage("Prepare to fetch",false);
+				// clear all
+				d3.select("#scenarios").selectAll("*").remove();
+				fetchBigJenkinsJson(config, function(o) {
+					fetching = false;
+					remoteData = o;
+					console.log("data fetched from jenkins " + remoteData);
+					refresh();
+				}, function(callbackDetails) {
+					d3.select("#debug").text(
+							callbackDetails.message
+							+ (callbackDetails.totalFetches?(" (" +  callbackDetails.alreadyFetched + "/" + callbackDetails.totalFetches
+									+ ") (remaining:" + callbackDetails.pendingFetches + ")"):''));
+				}, function(error){
+					fetching = false;
+					remoteData = null;
+					showMessage("Impossible to fetch JSON from Jenkins (see console logs): " + error,true);					
+				});
+			} else {
+				refresh();
+			}
+		}
+
+		function refresh() {
+			var result = processJson(remoteData, config);
+
+			updateFacets(result);
+
+			d3.select("#debug").text(
+					result.scenarios.length + " scenarios found!");
+			showScenarios(d3.select("#scenarios").node(), result.scenarios);
+		}
+
+		function updateFacets(result) {
+			//status
+			d3.select("#filters-status").selectAll("a").text(function(d) {
+				var btn = d3.select(this);
+				var status = btn.attr("data-status");
+				if (status == "ALL") {
+					return "All (" + result.allScenarios.length + ")";
+				} else if (status == "ALL_KOS") {
+					return "Only KOs (" + result.allKos + ")";
+				} else {
+					var count = result.status[status];
+					return status.replace(/_/g, " ") + " (" + count + ")";
+				}
+			});
+
+			d3.select("#filters-name")
+					.classed("has-error", !!result.fnameerror).attr("title",
+							result.fnameerror);
+
+			//jobs
+			var jobFilter = d3.selectAll("#fjob").selectAll("option").data(
+					result.jobs.entries(), function(o, i) {
+						return o ? o.key : this.key;
+					});
+			jobFilter.enter().append("option");
+			jobFilter.text(function(d) {
+				return d.key + '(' + d.value + ')';
+			}).attr("value", function(d) {
+				return d.key;
+			});
+			d3.select("#fjob").property("value",
+					!currentParams.fjob ? "All jobs" : currentParams.fjob);
+
+			//features
+			var featureFilter = d3.selectAll("#ffeature").selectAll("option")
+					.data(result.features.entries(), function(o, i) {
+						return o ? o.key : this.key;
+					});
+			featureFilter.enter().append("option");
+			featureFilter.text(function(d) {
+				return d.key + '(' + d.value + ')';
+			}).attr("value", function(d) {
+				return d.key;
+			});
+			d3.select("#ffeature").property(
+					"value",
+					!currentParams.ffeature ? "All features"
+							: currentParams.ffeature);
+			//configs
+			var configFilter = d3.selectAll("#fconfig").selectAll("option")
+					.data(result.configurations.entries(), function(o, i) {
+						return o ? o.key : this.key;
+					});
+			configFilter.enter().append("option");
+			configFilter.text(function(d) {
+				return d.key + '(' + d.value + ')';
+			}).attr("value", function(d) {
+				return d.key;
+			});
+			d3.select("#fconfig").property(
+					"value",
+					!currentParams.fconfig ? "All configs"
+							: currentParams.fconfig);
+
+		}
+	</script>
+</body>
+</html>

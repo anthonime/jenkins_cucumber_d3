@@ -1,0 +1,24 @@
+.btn.active {
+	border-width:2px;
+	border-color:black;
+}
+
+#filters{
+	margin-bottom: 8px;
+}
+#filters .form-inline{
+	margin-top: 3px;
+}
+
+#filters select{
+	max-width: 250px;
+}
+
+navbar-text{
+	margin-right: 0px;
+}
+
+.alert{
+	margin: 0 auto;
+	width: 500px;
+}
