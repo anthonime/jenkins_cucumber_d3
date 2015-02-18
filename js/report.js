@@ -7,6 +7,7 @@ var testData = [ {
 			name : "@RTV-2212",
 			line : 5
 		} ],
+		tagList : "@RTV-x,@pending,@myfeature"
 	},
 	feature : {
 		name : "AnalyseSauvegardées",
@@ -70,7 +71,7 @@ var testData = [ {
 	actions : [ {
 	// TODO
 	} ]
-	tagList : "@RTV-x,@pending,@myfeature"
+
 } ];
 
 var timeFormat = null;
