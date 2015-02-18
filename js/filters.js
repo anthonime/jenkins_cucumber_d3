@@ -80,7 +80,6 @@ function processJson(jobsWithActiveConfiguration, config) {
 			s.actions = [ {
 				name : "Run",
 				url : "javascript:void(0)",
-				postData : ,
 				onclick : function() {
 					var jobUrl = config.jenkinsUrl + "/job/"
 							+ config.rerunJobName + "/build";
