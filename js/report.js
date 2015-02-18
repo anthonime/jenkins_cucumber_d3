@@ -219,7 +219,7 @@ function createLastExecCell(row, lastExec) {
 			+ lastExec.build.number + " </a> " + "<span style=''> "
 			+ formattedTimestamp + " </span> " + "<span style=''> "
 			+ formatDuration(lastExec.build.duration) + "</span> "
-			+ "<br><span style=''>Tags: " + row.scenario.tagList + "</span>";
+			+ (row.scenario.tags?("<br><span style=''>Tags: " + row.scenario.tags.map(function(d){return d.name}).join(" ") + "</span>"):"");
 }
 
 function createExecProgress(scenario, executions) {
