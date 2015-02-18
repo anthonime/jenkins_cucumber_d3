@@ -190,8 +190,8 @@ function createActionsCell(actions) {
 	}
 	var result = "";
 	actions.forEach(function(action) {
-		var onclick = action.onclick ? "onclick='rerun(" + action.job + ","
-				+ action.data + ")'" : "";
+		var onclick = action.job ? "onclick=\"rerun('" + action.job + "','"
+				+ action.data + "')\"" : "";
 		result += "<a href='" + action.url + "' " + onclick + ">" + action.name
 				+ " </a>";
 	});
