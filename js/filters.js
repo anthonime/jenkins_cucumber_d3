@@ -84,9 +84,9 @@ function processJson(jobsWithActiveConfiguration, config) {
 			
 			var tagsOptions = "";
 			if(s.scenario.tagList){
-				tagsOptions = s.scenario.tagList.split(",").map(function(d) {
-					return "--tags '" + d + "'";
-				}).join(' ');
+				tagsOptions = "'" + s.scenario.tagList.split(",").map(function(d) {
+					return "--tags " + d + "";
+				}).join(' ') + "'";
 			}
 			if (config.rerunJobName) {
 				s.actions = [ {
@@ -94,7 +94,7 @@ function processJson(jobsWithActiveConfiguration, config) {
 					url : "javascript:void(0)",
 					job : config.jenkinsUrl + "/job/" + config.rerunJobName
 							+ "/buildWithParameters",
-					data : { "parameter": {"name": "CUCUMBER_OPTIONS", "value": tagsOptions}}
+					parameters : { CUCUMBER_OPTIONS: tagsOptions}
 				} ];
 			}
 
@@ -323,7 +323,9 @@ function computeScenarioObject(configuration, build, scenario) {
 		default:
 			break;
 		}
-		result.duration += d.result.duration;
+		if(!isNaN(d.result.duration)){
+			result.duration += d.result.duration;
+		}
 	}
 	if (scenario.steps)
 		scenario.steps.forEach(computeResultAndAppendDuration);
@@ -335,7 +337,6 @@ function computeScenarioObject(configuration, build, scenario) {
 
 	if (scenario.tags) {
 		scenario.tags.forEach(function(tag) {
-			// TODO: how to make a generic thing ??
 			result.pending |= (tag.name == configuration.pendingTagName);
 		});
 	}

@@ -22,3 +22,37 @@ navbar-text{
 	margin: 0 auto;
 	width: 500px;
 }
+
+.ellipsis{
+	overflow: hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+    display:inline-block;
+}
+
+/* put border on the history executions */
+#scenarios a .progress-bar{
+	border-left: 1px solid #777;
+
+}
+
+#scenarios a:first-child .progress-bar{
+	border-left: none;
+	
+}
+
+#scenarios .feature{
+	
+} 
+
+#scenarios .job{
+	
+} 
+
+#scenarios .configuration{
+	
+} 
+
+#scenarios .scenario{
+	
+} 

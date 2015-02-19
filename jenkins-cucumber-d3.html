@@ -27,25 +27,31 @@
 				<div class="navbar-text">Jenkins home:</div>
 				<form class="navbar-form navbar-left">
 					<div class="form-group">
-						<input id="jenkins_url" type="text" class="form-control" placeholder="Jenkins URL...">
+						<input id="jenkins_url" type="text" class="form-control"
+							placeholder="Jenkins URL...">
 					</div>
 				</form>
 				<div class="navbar-text">Pending tag name:</div>
 				<form class="navbar-form navbar-left">
 					<div class="form-group">
-						<input id="pendingTagName" type="text" class="form-control" placeholder="Tag name to identify pending scenarios">
+						<input id="pendingTagName" type="text" class="form-control"
+							placeholder="Tag name to identify pending scenarios">
 					</div>
 				</form>
 				<div class="navbar-text">Rerun job name:</div>
 				<form class="navbar-form navbar-left">
 					<div class="form-group">
-						<input id="rerunJobName" type="text" class="form-control" placeholder="Name of the job to relaunch cucumber">
+						<input id="rerunJobName" type="text" class="form-control"
+							placeholder="Name of the job to relaunch cucumber">
 					</div>
 				</form>
 			</div>
-			
+
 			<div class="nav navbar-nav collapse navbar-collapse navbar-right">
-				<p class="navbar-text ">Fork on <a href="https://github.com/anthonime/jenkins_cucumber_d3/" class="">GitHub</a></p>
+				<p class="navbar-text ">
+					Fork on <a href="https://github.com/anthonime/jenkins_cucumber_d3/"
+						class="">GitHub</a>
+				</p>
 			</div>
 		</div>
 	</nav>
@@ -120,6 +126,11 @@
 			<span aria-hidden="true">&times;</span>
 		</button>
 		<p id="debug"></p>
+		<div id="progressbar" class="progress">
+			<div id="progress" class="progress-bar progress-bar-striped"
+				role="progressbar" aria-valuenow="60" aria-valuemin="0"
+				aria-valuemax="100" style="width: 0%;"></div>
+		</div>
 	</div>
 	<div id="scenarios"></div>
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
@@ -151,16 +162,15 @@
 			currentParams = jQuery.extend(true, {}, params);
 
 			//append the list of KO statuses to the config
-			config.KO_STATUSES = [ "REGRESSION", "PERSISTENT_REGRESSION", "KO",
-					"PENDING", "RANDOMNESS" ];
-			if(!config.jenkinsUrl){
+			config.KO_STATUSES = [ "REGRESSION", "PERSISTENT_REGRESSION", "KO", "PENDING", "RANDOMNESS" ];
+			if (!config.jenkinsUrl) {
 				//default 
 				config.jenkinsUrl = window.location.protocol + "//" + window.location.host;
-			}  
-			if(!config.pendingTagName){
+			}
+			if (!config.pendingTagName) {
 				config.pendingTagName = "@pending";
 			}
-				
+
 			applyFilters(params);
 		}
 
@@ -169,52 +179,48 @@
 				params.fstatus = [ params.fstatus ];
 			}
 			//status
-			d3.select("#filters-status").selectAll("a").classed("active",
-					function(d) {
-						if (!params.fstatus) {
-							return false;
-						}
-						var s = d3.select(this).attr("data-status");
-						return params.fstatus.indexOf(s) > -1;
-					});
+			d3.select("#filters-status").selectAll("a").classed("active", function(d) {
+				if (!params.fstatus) {
+					return false;
+				}
+				var s = d3.select(this).attr("data-status");
+				return params.fstatus.indexOf(s) > -1;
+			});
 			//name
-			d3.select("#fname").property("value", params.fname);
-			d3.select("#ftag").property("value", params.ftag);
-			d3.select("#jenkins_url").property("value", params.jenkinsUrl);
-			d3.select("#pendingTagName").property("value", params.pendingTagName);
-			d3.select("#rerunJobName").property("value", params.rerunJobName);
+			d3.select("#fname").property("value", params.fname ? params.fname : "");
+			d3.select("#ftag").property("value", params.ftag ? params.ftag : "");
+			d3.select("#jenkins_url").property("value", params.jenkinsUrl ? params.jenkinsUrl : "");
+			d3.select("#pendingTagName").property("value", params.pendingTagName ? params.pendingTagName : "");
+			d3.select("#rerunJobName").property("value", params.rerunJobName ? params.rerunJobName : "");
 			update();
 		}
 
 		//listens for filter changes
-		d3.selectAll("#filters-status a").on(
-				"click",
-				function(e) {
-					var btn = d3.select(this);
-					var status = btn.attr("data-status");
-					var active = !btn.classed("active");
+		d3.selectAll("#filters-status a").on("click", function(e) {
+			var btn = d3.select(this);
+			var status = btn.attr("data-status");
+			var active = !btn.classed("active");
 
-					if (status == "ALL") {
-						currentParams.fstatus = [];
-					} else if (status == "ALL_KOS") {
-						//copy 
-						currentParams.fstatus = config.KO_STATUSES.slice();
-					} else {
-						if (!currentParams.fstatus) {
-							currentParams.fstatus = [];
-						}
-						//remove the element from the array
-						currentParams.fstatus = currentParams.fstatus
-								.filter(function(d) {
-									return d != status;
-								});
-						if (active) {
-							//add it if necessary
-							currentParams.fstatus.push(status);
-						}
-					}
-					jQuery.bbq.pushState(currentParams);
+			if (status == "ALL") {
+				currentParams.fstatus = [];
+			} else if (status == "ALL_KOS") {
+				//copy 
+				currentParams.fstatus = config.KO_STATUSES.slice();
+			} else {
+				if (!currentParams.fstatus) {
+					currentParams.fstatus = [];
+				}
+				//remove the element from the array
+				currentParams.fstatus = currentParams.fstatus.filter(function(d) {
+					return d != status;
 				});
+				if (active) {
+					//add it if necessary
+					currentParams.fstatus.push(status);
+				}
+			}
+			jQuery.bbq.pushState(currentParams);
+		});
 
 		d3.select("#fname").on("blur", function(e) {
 			var v = $("#fname").val();
@@ -228,7 +234,7 @@
 		});
 		d3.select("#jenkins_url").on("blur", function(e) {
 			var jenkinsUrl = $(this).val();
-			if(jenkinsUrl!=currentParams.jenkinsUrl){
+			if (jenkinsUrl != currentParams.jenkinsUrl) {
 				currentParams.jenkinsUrl = jenkinsUrl;
 				remoteData = null;
 			}
@@ -236,55 +242,63 @@
 		});
 		d3.select("#pendingTagName").on("blur", function(e) {
 			var pendingTagName = $(this).val();
-			if(pendingTagName!=currentParams.pendingTagName){
+			if (pendingTagName != currentParams.pendingTagName) {
 				currentParams.pendingTagName = pendingTagName;
 			}
 			jQuery.bbq.pushState(currentParams);
 		});
 		d3.select("#rerunJobName").on("blur", function(e) {
 			var rerunJobName = $(this).val();
-			if(rerunJobName!=currentParams.rerunJobName){
+			if (rerunJobName != currentParams.rerunJobName) {
 				currentParams.rerunJobName = rerunJobName;
 			}
 			jQuery.bbq.pushState(currentParams);
 		});
-		
-		
-		d3.select("#filters-category").selectAll("select").on("change",
-				function(e) {
-					var v = this.value;
-					currentParams[this.name] = v;
-					jQuery.bbq.pushState(currentParams);
-				});
 
-		function showMessage(message,danger){
-			d3.select("#debugContainer")
-					.classed("alert-danger",danger?true:false)
-					.classed("alert-info",danger?false:true);
+		d3.select("#filters-category").selectAll("select").on("change", function(e) {
+			var v = this.value;
+			currentParams[this.name] = v;
+			jQuery.bbq.pushState(currentParams);
+		});
+
+		function showMessage(message, danger) {
+			d3.select("#debugContainer").classed("alert-danger", danger ? true : false).classed("alert-info", danger ? false : true);
 			d3.select("#debug").text(message);
-			
+
 		}
 		function update() {
 			if (!remoteData && !fetching) {
 				fetching = true;
-				showMessage("Prepare to fetch",false);
+				showMessage("Prepare to fetch", false);
 				// clear all
 				d3.select("#scenarios").selectAll("*").remove();
+				d3.select("#progressbar").style("display", "block");
+				d3.select("#progress").style("width", "0%").text("0%");
 				fetchBigJenkinsJson(config, function(o) {
+					d3.select("#progressbar").style("display", "none");
 					fetching = false;
 					remoteData = o;
 					console.log("data fetched from jenkins " + remoteData);
 					refresh();
-				}, function(callbackDetails) {
-					d3.select("#debug").text(
-							callbackDetails.message
-							+ (callbackDetails.totalFetches?(" (" +  callbackDetails.alreadyFetched + "/" + callbackDetails.totalFetches
-									+ ") (remaining:" + callbackDetails.pendingFetches + ")"):''));
-				}, function(error){
-					fetching = false;
-					remoteData = null;
-					showMessage("Impossible to fetch JSON from Jenkins (see console logs): " + error,true);					
-				});
+				},
+						function(callbackDetails) {
+							if (callbackDetails.totalFetches) {
+								var percent = (100 * (callbackDetails.alreadyFetched / callbackDetails.totalFetches)) | 0;
+								d3.select("#progress").style("width", percent + "%").text(percent + "%");
+							}
+							d3.select("#debug")
+									.text(
+											callbackDetails.message
+													+ (callbackDetails.totalFetches ? (" (" + callbackDetails.alreadyFetched + "/"
+															+ callbackDetails.totalFetches + ") (remaining:"
+															+ callbackDetails.pendingFetches + ")") : ''));
+
+						}, function(error) {
+							d3.select("#progressbar").style("display", "none");
+							fetching = false;
+							remoteData = null;
+							showMessage("Impossible to fetch JSON from Jenkins (see console logs): " + error, true);
+						});
 			} else {
 				refresh();
 			}
@@ -295,8 +309,7 @@
 
 			updateFacets(result);
 
-			d3.select("#debug").text(
-					result.scenarios.length + " scenarios found!");
+			d3.select("#debug").text(result.scenarios.length + " scenarios found!");
 			showScenarios(d3.select("#scenarios").node(), result.scenarios);
 		}
 
@@ -315,54 +328,42 @@
 				}
 			});
 
-			d3.select("#filters-name")
-					.classed("has-error", !!result.fnameerror).attr("title",
-							result.fnameerror);
+			d3.select("#filters-name").classed("has-error", !!result.fnameerror).attr("title", result.fnameerror);
 
 			//jobs
-			var jobFilter = d3.selectAll("#fjob").selectAll("option").data(
-					result.jobs.entries(), function(o, i) {
-						return o ? o.key : this.key;
-					});
+			var jobFilter = d3.selectAll("#fjob").selectAll("option").data(result.jobs.entries(), function(o, i) {
+				return o ? o.key : this.key;
+			});
 			jobFilter.enter().append("option");
 			jobFilter.text(function(d) {
 				return d.key + '(' + d.value + ')';
 			}).attr("value", function(d) {
 				return d.key;
 			});
-			d3.select("#fjob").property("value",
-					!currentParams.fjob ? "All jobs" : currentParams.fjob);
+			d3.select("#fjob").property("value", !currentParams.fjob ? "All jobs" : currentParams.fjob);
 
 			//features
-			var featureFilter = d3.selectAll("#ffeature").selectAll("option")
-					.data(result.features.entries(), function(o, i) {
-						return o ? o.key : this.key;
-					});
+			var featureFilter = d3.selectAll("#ffeature").selectAll("option").data(result.features.entries(), function(o, i) {
+				return o ? o.key : this.key;
+			});
 			featureFilter.enter().append("option");
 			featureFilter.text(function(d) {
 				return d.key + '(' + d.value + ')';
 			}).attr("value", function(d) {
 				return d.key;
 			});
-			d3.select("#ffeature").property(
-					"value",
-					!currentParams.ffeature ? "All features"
-							: currentParams.ffeature);
+			d3.select("#ffeature").property("value", !currentParams.ffeature ? "All features" : currentParams.ffeature);
 			//configs
-			var configFilter = d3.selectAll("#fconfig").selectAll("option")
-					.data(result.configurations.entries(), function(o, i) {
-						return o ? o.key : this.key;
-					});
+			var configFilter = d3.selectAll("#fconfig").selectAll("option").data(result.configurations.entries(), function(o, i) {
+				return o ? o.key : this.key;
+			});
 			configFilter.enter().append("option");
 			configFilter.text(function(d) {
 				return d.key + '(' + d.value + ')';
 			}).attr("value", function(d) {
 				return d.key;
 			});
-			d3.select("#fconfig").property(
-					"value",
-					!currentParams.fconfig ? "All configs"
-							: currentParams.fconfig);
+			d3.select("#fconfig").property("value", !currentParams.fconfig ? "All configs" : currentParams.fconfig);
 
 		}
 	</script>
