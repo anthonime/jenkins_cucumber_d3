@@ -256,7 +256,7 @@ function computeAnalysis(scenario) {
 	scenario.maturity = maturity;
 }
 function getOrCreateScenarioRow(job, config, artifact, feature, scenario) {
-	var key = job.id + "" + config.name + "" + scenario.id;
+	var key = job.name + "" + config.name + "" + scenario.id;
 	var value = scenarioMap.get(key);
 	if (!value) {
 		value = {

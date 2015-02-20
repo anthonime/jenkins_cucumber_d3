@@ -262,13 +262,17 @@ function createLastExecCell(td, row, lastExec) {
 		if (row.scenario.tags) {
 			var tags = td.append("span").style("word-wrap","break-word");
 			tags.selectAll("a").data(row.scenario.tags).enter().append("a").attr("href", function(tag) {
-				return lastExec.build.url + "/cucumber-html-reports/" + tag.name.substring(1) + ".html";
+				return createHrefToCucumberReport(lastExec,tag);
 			}).text(function(tag) {
 				return " " + tag.name + " ";
 			});
 		}
 
 	}
+}
+
+function createHrefToCucumberReport(exec,tag){
+	return exec.build.url + "/cucumber-html-reports/" + tag.name.substring(1) + ".html";
 }
 
 function createExecProgress(td, scenario, executions) {
@@ -288,8 +292,9 @@ function createExecProgress(td, scenario, executions) {
 			var color = "progress-bar-" + (exec.scenario.result == "FAILURE" ? "danger" : "success");
 
 			// append a progress-bar part surrounded by a link to the build
-			progress.append("a").attr("href", exec.build.url).attr("title",
-					"Build " + scenario.job.name + " #" + exec.build.number + "<br>" + +new Date(exec.build.timestamp)).append("div").attr(
+			var href = scenario.scenario.tags?createHrefToCucumberReport(exec,scenario.scenario.tags[0]):exec.build.url;
+			progress.append("a").attr("href", href).attr("title",
+					"Build " + scenario.job.name + " #" + exec.build.number + "<br>" + timeFormat(new Date(exec.build.timestamp))).append("div").attr(
 					"class", "progress-bar " + striped + " " + color).style("width", width + "%").style("border", "1px solid #777;");
 
 		}
