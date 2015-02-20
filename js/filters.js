@@ -82,9 +82,9 @@ function processJson(jobsWithActiveConfiguration, config) {
 
 			var tagsOptions = "";
 			if (s.scenario.tagList) {
-				tagsOptions = "'" + s.scenario.tagList.split(",").map(function(d) {
+				tagsOptions = s.scenario.tagList.split(",").map(function(d) {
 					return "--tags " + d + "";
-				}).join(' ') + "'";
+				}).join(' ');
 			}
 			if (config.rerunJobName) {
 				s.actions = [ {

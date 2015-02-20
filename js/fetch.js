@@ -113,7 +113,7 @@ function fetchBuildArtifacts(job, config, build, callback, errorCallback, progre
 		for ( var artifactIdx in build.artifacts) {
 			//TODO: handle other file names...
 			var artifact = build.artifacts[artifactIdx];
-			if (artifact.fileName == "cucumber.json") {
+			if (artifact.fileName && artifact.fileName.match(".*\\.json")) {
 				var artifactKey = createKey(job,config,build,artifact.relativePath);
 				var artifactValue = artifactMap.get(artifactKey);
 				//the artifact is not already loading 
