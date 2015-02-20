@@ -59,11 +59,6 @@ function fetchBigJenkinsJson(config, callback, progressCallback, errorCallback) 
 			var job = jobs[jIdx];
 			var filteredConfigs = [];
 			
-			//create a "no config" object for artifacts that are not in a configuration
-			var fakeConfig = {name:"no config", displayName:"no config", url:"javascript:void(0)"};
-			fakeConfig.builds = job.builds;
-			job.activeConfigurations.push(fakeConfig);
-			
 			//check in the activeConfigurations builds
 			for(var cIdx in job.activeConfigurations){
 				var config = job.activeConfigurations[cIdx];
@@ -106,8 +101,28 @@ function fetchBigJenkinsJson(config, callback, progressCallback, errorCallback) 
 //============ Process JSON ============= 
 
 function extractJobsWithActiveConfigurations(jobs){
-	return jobs.filter(function(d){
-		return !!d.activeConfigurations;
+	
+	
+	return jobs.filter(function(job){
+		//also append a fake configuration if the job has some artifacts
+		var hasArtifacts = false;
+		if(job.builds){
+			job.builds.forEach(function(build){
+				if(build.artifacts && build.artifacts.length>0){
+					hasArtifacts = true;
+				}
+			})
+		}
+		if(hasArtifacts){
+			//create a "no config" object for artifacts that are not in a configuration
+			var fakeConfig = {name:"no config", displayName:"no config", url:"javascript:void(0)"};
+			fakeConfig.builds = job.builds;
+			if(!job.activeConfigurations){
+				job.activeConfigurations = [];
+			}
+			job.activeConfigurations.push(fakeConfig);
+		} 
+		return hasArtifacts || !!job.activeConfigurations;
 	});
 }
 
