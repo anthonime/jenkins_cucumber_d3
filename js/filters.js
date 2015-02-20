@@ -269,6 +269,7 @@ function getOrCreateScenarioRow(job, config, artifact, feature, scenario) {
 				id : feature.id,
 				name : feature.name,
 				fileName : feature.uri,
+				tags: feature.tags,
 			},
 			job : {
 				id : job.id,
