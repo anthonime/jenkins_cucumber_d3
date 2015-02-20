@@ -117,7 +117,7 @@ function showScenarios(node, data) {
 			th.append("span").attr("class", "glyphicon glyphicon-remove text-danger").attr("title", "% of failures");
 			break;
 		case "successes":
-			th.append("span").attr("class", "glyphicon glyphicon-remove text-success").attr("title", "% of successes");
+			th.append("span").attr("class", "glyphicon glyphicon-ok text-success").attr("title", "% of successes");
 			break;
 		default:
 			th.text(column);
