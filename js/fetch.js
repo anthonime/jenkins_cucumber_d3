@@ -2,7 +2,7 @@
 var JSON_API = "/api/json";
 var PARAM_DEPTH = "depth=";
 var PARAM_PRETTY = "pretty=true";
-var PARAM_BUILD_TREE = "tree=jobs[name,displayName,activeConfigurations[name,displayName,builds[number,result,url,timestamp,duration,artifacts[relativePath,fileName]]]]"
+var PARAM_BUILD_TREE = "tree=jobs[name,displayName,builds[number,artifacts[relativePath,fileName]],activeConfigurations[name,displayName,builds[number,result,url,timestamp,duration,artifacts[relativePath,fileName]]]]"
 
 
 	var artifactMap = d3.map();
@@ -39,6 +39,7 @@ function fetchBigJenkinsJson(config, callback, progressCallback, errorCallback) 
 	//init
 	artifactMap = d3.map();
 	pendingFetches = 0;
+	
 	//fetch the big Json containing all
 	var url = config.jenkinsUrl + JSON_API + "?" 
 				+ depth(1) 
@@ -57,6 +58,13 @@ function fetchBigJenkinsJson(config, callback, progressCallback, errorCallback) 
 		for(var jIdx in jobs){
 			var job = jobs[jIdx];
 			var filteredConfigs = [];
+			
+			//create a "no config" object for artifacts that are not in a configuration
+			var fakeConfig = {name:"no config", displayName:"no config", url:"javascript:void(0)"};
+			fakeConfig.builds = job.builds;
+			job.activeConfigurations.push(fakeConfig);
+			
+			//check in the activeConfigurations builds
 			for(var cIdx in job.activeConfigurations){
 				var config = job.activeConfigurations[cIdx];
 				var filteredBuilds = [];
@@ -86,6 +94,9 @@ function fetchBigJenkinsJson(config, callback, progressCallback, errorCallback) 
 			if(job.activeConfigurations && job.activeConfigurations.length>0){
 				filteredJobs.push(job);
 			}
+			
+			
+
 		}
 		jobs = filteredJobs;
 	},errorCallback);
