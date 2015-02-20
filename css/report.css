@@ -50,9 +50,13 @@ navbar-text{
 } 
 
 #scenarios .configuration{
-	
+	max-width: 150px;
 } 
 
 #scenarios .scenario{
 	
+} 
+
+#scenarios .lastExecution{
+	max-width: 150px;
 } 

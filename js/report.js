@@ -138,6 +138,7 @@ function showScenarios(node, data) {
 		});
 	}).enter()
 	.append("td")
+	.style("word-wrap","break-word")
 	.attr("class",function(d){
 			return d.columnName;
 		})
@@ -156,11 +157,12 @@ function populateCell(d, i) {
 	case "feature":
 	case "job":
 	case "configuration":
-		td.append("span")
+		//td.append("span")
 //			.classed("ellipsis", true)
 //			.style("max-width","100px")
 //			.attr("title", row[columnName].name)
-			.text(row[columnName].name);
+			//.text(row[columnName].name);
+		td.text(row[columnName].name);
 		break;
 	case "executionCount":
 		td.text(row[columnName]);
@@ -232,13 +234,14 @@ function createActionsCell(td, actions) {
 	if (actions) {
 		td.selectAll("a").data(actions)
 			.enter().append("a")
+			.attr("class", "btn btn-primary btn-xs")
 			.attr("href",function(a){return a.url})
 			.text(function(a){return a.name})
 			.on("click",function(a){
 				if(a.job){
 					rerun(a.job,a.parameters);
 				}
-			});
+			}).append("span").attr("class","glyphicon glyphicon-flash glyphicon-align-left");
 	}
 }
 
@@ -257,11 +260,11 @@ function createLastExecCell(td, row, lastExec) {
 		td.append("span").text(formatDuration(lastExec.scenario.duration / 1000000));
 		td.append("br");
 		if (row.scenario.tags) {
-			var tags = td.append("span");
+			var tags = td.append("span").style("word-wrap","break-word");
 			tags.selectAll("a").data(row.scenario.tags).enter().append("a").attr("href", function(tag) {
 				return lastExec.build.url + "/cucumber-html-reports/" + tag.name.substring(1) + ".html";
 			}).text(function(tag) {
-				return tag.name
+				return " " + tag.name + " ";
 			});
 		}
 

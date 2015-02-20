@@ -45,8 +45,7 @@ function processJson(jobsWithActiveConfiguration, config) {
 
 				for ( var aIdx in build.artifacts) {
 					var artifact = build.artifacts[aIdx];
-					processArtifact(config, job, activeConfiguration, build,
-							artifact);
+					processArtifact(config, job, activeConfiguration, build, artifact);
 				}
 
 			}
@@ -71,8 +70,7 @@ function processJson(jobsWithActiveConfiguration, config) {
 
 				var severity = s.severity.replace(/ /g, "_");
 				result.status[severity] += 1;
-				result.allKos += config.KO_STATUSES.indexOf(severity) > -1 ? 1
-						: 0;
+				result.allKos += config.KO_STATUSES.indexOf(severity) > -1 ? 1 : 0;
 			}
 			//
 
@@ -81,9 +79,9 @@ function processJson(jobsWithActiveConfiguration, config) {
 					return d.name;
 				}).join(',');
 			}
-			
+
 			var tagsOptions = "";
-			if(s.scenario.tagList){
+			if (s.scenario.tagList) {
 				tagsOptions = "'" + s.scenario.tagList.split(",").map(function(d) {
 					return "--tags " + d + "";
 				}).join(' ') + "'";
@@ -92,9 +90,10 @@ function processJson(jobsWithActiveConfiguration, config) {
 				s.actions = [ {
 					name : "Run",
 					url : "javascript:void(0)",
-					job : config.jenkinsUrl + "/job/" + config.rerunJobName
-							+ "/buildWithParameters",
-					parameters : { CUCUMBER_OPTIONS: tagsOptions}
+					job : config.jenkinsUrl + "/job/" + config.rerunJobName + "/buildWithParameters",
+					parameters : {
+						CUCUMBER_OPTIONS : tagsOptions
+					}
 				} ];
 			}
 
@@ -103,13 +102,10 @@ function processJson(jobsWithActiveConfiguration, config) {
 			result.jobs.set(s.job.name, !jobCount ? 1 : ++jobCount);
 
 			var featureCount = result.features.get(s.feature.name);
-			result.features.set(s.feature.name, !featureCount ? 1
-					: ++featureCount);
+			result.features.set(s.feature.name, !featureCount ? 1 : ++featureCount);
 
-			var configurationCount = result.configurations
-					.get(s.configuration.name);
-			result.configurations.set(s.configuration.name,
-					!configurationCount ? 1 : ++configurationCount);
+			var configurationCount = result.configurations.get(s.configuration.name);
+			result.configurations.set(s.configuration.name, !configurationCount ? 1 : ++configurationCount);
 
 		});
 
@@ -156,21 +152,16 @@ function processJson(jobsWithActiveConfiguration, config) {
 						return false;
 					}
 				}
-				if (config.fjob && config.fjob != "All jobs"
-						&& scenario.job.name != config.fjob) {
+				if (config.fjob && config.fjob != "All jobs" && scenario.job.name != config.fjob) {
 					return false;
 				}
-				if (config.ffeature && config.ffeature != "All features"
-						&& scenario.feature.name != config.ffeature) {
+				if (config.ffeature && config.ffeature != "All features" && scenario.feature.name != config.ffeature) {
 					return false;
 				}
-				if (config.fconfig && config.fconfig != "All configs"
-						&& scenario.configuration.name != config.fconfig) {
+				if (config.fconfig && config.fconfig != "All configs" && scenario.configuration.name != config.fconfig) {
 					return false;
 				}
-				if (config.fstatus
-						&& config.fstatus.indexOf(scenario.severity.replace(
-								/ /g, "_")) == -1) {
+				if (config.fstatus && config.fstatus.indexOf(scenario.severity.replace(/ /g, "_")) == -1) {
 					return false;
 				}
 				return true;
@@ -182,10 +173,8 @@ function processJson(jobsWithActiveConfiguration, config) {
 }
 
 function hasFilters(config) {
-	return (config.fstatus && config.fstatus.length > 0) || !!config.fname
-			|| !!config.ftag || config.fjob && config.fjob != "All jobs"
-			|| config.fconfig && config.fconfig != "All configs"
-			|| config.ffeature && config.ffeature != "All features";
+	return (config.fstatus && config.fstatus.length > 0) || !!config.fname || !!config.ftag || config.fjob && config.fjob != "All jobs"
+			|| config.fconfig && config.fconfig != "All configs" || config.ffeature && config.ffeature != "All features";
 }
 
 function computeAnalysis(scenario) {
@@ -233,8 +222,7 @@ function computeAnalysis(scenario) {
 		// or REWORK
 		else {
 			maturity = "REWORK";
-			severity = currentStatus == "FAILURE" ? "PENDING"
-					: ((isRecent ? "RECENTLY " : "") + "DONE");
+			severity = currentStatus == "FAILURE" ? "PENDING" : ((isRecent ? "RECENTLY " : "") + "DONE");
 		}
 
 	} else {
@@ -313,18 +301,20 @@ function computeScenarioObject(configuration, build, scenario) {
 	}
 
 	function computeResultAndAppendDuration(d) {
-		switch (d.result.status) {
-		case "failed":
-			result.result = "FAILURE";
-			break;
-		case "skipped":
-		case "passed":
-			break;
-		default:
-			break;
-		}
-		if(!isNaN(d.result.duration)){
-			result.duration += d.result.duration;
+		if (d.result) {
+			switch (d.result.status) {
+			case "failed":
+				result.result = "FAILURE";
+				break;
+			case "skipped":
+			case "passed":
+				break;
+			default:
+				break;
+			}
+			if (!isNaN(d.result.duration)) {
+				result.duration += d.result.duration;
+			}
 		}
 	}
 	if (scenario.steps)
@@ -344,8 +334,7 @@ function computeScenarioObject(configuration, build, scenario) {
 	return result;
 }
 
-function createExecution(configuration, job, config, build, artifact, feature,
-		scenario) {
+function createExecution(configuration, job, config, build, artifact, feature, scenario) {
 
 	return {
 		build : build,
@@ -380,11 +369,9 @@ function processArtifact(configuration, job, config, build, artifact) {
 			// after,before,description,id,keyword'"Scenario Outline"
 			// line,name,steps,tags,type="scenario"
 			// steps:
-			var scenarioRow = getOrCreateScenarioRow(job, config, artifact,
-					feature, scenario);
+			var scenarioRow = getOrCreateScenarioRow(job, config, artifact, feature, scenario);
 			scenarioRow.executionCount++;
-			var execution = createExecution(configuration, job, config, build,
-					artifact, feature, scenario);
+			var execution = createExecution(configuration, job, config, build, artifact, feature, scenario);
 			scenarioRow.executions.push(execution);
 			setOrNotLastExecution(scenarioRow, execution);
 			if (execution.scenario.result == "FAILURE") {
@@ -399,8 +386,7 @@ function processArtifact(configuration, job, config, build, artifact) {
 }
 
 function setOrNotLastExecution(scenario, execution) {
-	if (!scenario.lastExecution
-			|| scenario.lastExecution.scenario.timestamp < execution.scenario.timestamp) {
+	if (!scenario.lastExecution || scenario.lastExecution.scenario.timestamp < execution.scenario.timestamp) {
 		scenario.lastExecution = execution;
 	}
 }
