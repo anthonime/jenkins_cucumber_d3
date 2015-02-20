@@ -2,7 +2,7 @@
 var JSON_API = "/api/json";
 var PARAM_DEPTH = "depth=";
 var PARAM_PRETTY = "pretty=true";
-var PARAM_BUILD_TREE = "tree=jobs[name,displayName,builds[number,artifacts[relativePath,fileName]],activeConfigurations[name,displayName,builds[number,result,url,timestamp,duration,artifacts[relativePath,fileName]]]]"
+var PARAM_BUILD_TREE = "tree=jobs[name,displayName,builds[number,result,url,timestamp,duration,artifacts[relativePath,fileName]],activeConfigurations[name,displayName,builds[number,result,url,timestamp,duration,artifacts[relativePath,fileName]]]]"
 
 
 	var artifactMap = d3.map();
