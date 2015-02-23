@@ -38,14 +38,22 @@ function processJson(jobsWithActiveConfiguration, config) {
 		for ( var cIdx in job.activeConfigurations) {
 
 			var activeConfiguration = job.activeConfigurations[cIdx];
-
+			activeConfiguration.builds.sort(function(a, b) {
+				//ensure builds are sorted anti-chrono
+				return parseInt(b.number) - parseInt(a.number);
+			});
+			
 			for ( var bIdx in activeConfiguration.builds) {
-
+				//most recent build (aka last execution):
+				//only create scenario object from the most recent build
+				//this make the scenario that does not exist anymore in the scenario
+				//disappearing from the report
+				var createScenarioObject = (bIdx==0);
 				var build = activeConfiguration.builds[bIdx];
 
 				for ( var aIdx in build.artifacts) {
 					var artifact = build.artifacts[aIdx];
-					processArtifact(config, job, activeConfiguration, build, artifact);
+					processArtifact(config, job, activeConfiguration, build, artifact, createScenarioObject);
 				}
 
 			}
@@ -255,10 +263,10 @@ function computeAnalysis(scenario) {
 	scenario.severity = severity;
 	scenario.maturity = maturity;
 }
-function getOrCreateScenarioRow(job, config, artifact, feature, scenario) {
+function getOrCreateScenarioRow(job, config, artifact, feature, scenario, forceScenarioCreation) {
 	var key = job.name + "" + config.name + "" + scenario.id;
 	var value = scenarioMap.get(key);
-	if (!value) {
+	if (!value && forceScenarioCreation) {
 		value = {
 			scenario : {
 				id : scenario.id,
@@ -343,7 +351,7 @@ function createExecution(configuration, job, config, build, artifact, feature, s
 	};
 }
 
-function processArtifact(configuration, job, config, build, artifact) {
+function processArtifact(configuration, job, config, build, artifact, createScenario) {
 
 	// console.log(artifact);
 	// retrieve all the scenarios
@@ -354,14 +362,6 @@ function processArtifact(configuration, job, config, build, artifact) {
 	}
 
 	artifact.contents.forEach(function(feature) {
-		// console.log(feature);
-		// feature.id
-		// feature.description
-		// feature.keyword="Feature"
-		// feature.name
-		// feature.uri
-		// feature.tags
-		// feature.elements
 		if (!feature.elements) {
 			return;
 		}
@@ -370,15 +370,20 @@ function processArtifact(configuration, job, config, build, artifact) {
 			// after,before,description,id,keyword'"Scenario Outline"
 			// line,name,steps,tags,type="scenario"
 			// steps:
-			var scenarioRow = getOrCreateScenarioRow(job, config, artifact, feature, scenario);
-			scenarioRow.executionCount++;
-			var execution = createExecution(configuration, job, config, build, artifact, feature, scenario);
-			scenarioRow.executions.push(execution);
-			setOrNotLastExecution(scenarioRow, execution);
-			if (execution.scenario.result == "FAILURE") {
-				scenarioRow.failures++;
-			} else {
-				scenarioRow.successes++;
+			var scenarioRow = getOrCreateScenarioRow(job, config, artifact, feature, scenario,createScenario);
+			//scenario row can be null if it "disappeared" 
+			if(scenarioRow){
+				//create execution object
+				var execution = createExecution(configuration, job, config, build, artifact, feature, scenario);
+				scenarioRow.executions.push(execution);
+				setOrNotLastExecution(scenarioRow, execution);
+				//count executions
+				scenarioRow.executionCount++;
+				if (execution.scenario.result == "FAILURE") {
+					scenarioRow.failures++;
+				} else {
+					scenarioRow.successes++;
+				}
 			}
 		});
 
