@@ -149,6 +149,10 @@ function createKey(job, config, build, relativePath) {
 
 function fetchBuildArtifacts(job, config, build, callback, errorCallback,
 		progressCallback) {
+	if(job.name.indexOf("rtv-sel-parameterized")!=0){
+		console.log("skipping job " + job.name );
+		return;
+	}
 	if (build.artifacts) {
 		var filteredArtifacts = [];
 		for ( var artifactIdx in build.artifacts) {
