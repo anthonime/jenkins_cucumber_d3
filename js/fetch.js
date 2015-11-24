@@ -149,7 +149,7 @@ function createKey(job, config, build, relativePath) {
 
 function fetchBuildArtifacts(job, config, build, callback, errorCallback,
 		progressCallback) {
-	if(job.name.indexOf("rtv-sel-parameterized")!=0){
+	if(job.name.indexOf("rtv-sel-parameterized-chrome")!=0){
 		console.log("skipping job " + job.name );
 		return;
 	}
