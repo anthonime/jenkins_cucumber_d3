@@ -182,7 +182,7 @@ function fetchBuildArtifacts(job, config, build, callback, errorCallback,
 						alreadyFetched++;
 						pendingFetches--;
 						progressCallback({
-							message : "Fetching cucumber JSON files...",
+							message : "Fetching cucumber JSON files (" + job.name + ")",
 							alreadyFetched : alreadyFetched,
 							totalFetches : totalFetches,
 							pendingFetches : pendingFetches
