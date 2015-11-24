@@ -61,9 +61,9 @@ function fetchBigJenkinsJson(config, callback, progressCallback, errorCallback) 
 				for ( var jIdx in jobs) {
 					var job = jobs[jIdx];
 					//FIXME: filter on one specific job
-					if(job.name!='rtv-master-sel-NonRegression-Parallel'){
-						continue;
-					}
+//					if(job.name!='rtv-master-sel-NonRegression-Parallel'){
+//						continue;
+//					}
 					var filteredConfigs = [];
 					// check in the activeConfigurations builds
 					for ( var cIdx in job.activeConfigurations) {
