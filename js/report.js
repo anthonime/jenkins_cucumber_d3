@@ -319,7 +319,7 @@ function showPopup(exec2, scenario){
 //	console.log("scenario", scenario);
 	
 	var isFailure = exec2.scenario.result == "FAILURE";
-	$('#scenarioModalStatus').text((isFailure?"DANGER":"SUCCESS") + " " + formatDuration(exec2.scenario.duration/1000000)).toggleClass("label-danger",isFailure).toggleClass("label-success",!isFailure);
+	$('#scenarioModalStatus').text((isFailure?"FAILURE":"SUCCESS") + " " + formatDuration(exec2.scenario.duration/1000000)).toggleClass("label-danger",isFailure).toggleClass("label-success",!isFailure);
 	$('#scenarioModalTitle').text(scenario.scenario.name);
 	
 	//exec2.scenario.steps
