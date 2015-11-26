@@ -5,7 +5,7 @@ function getFilter() {
 }
 
 function processJson(jobsWithActiveConfiguration, config) {
-	console.log("filter scenarios using ", config)
+	console.log("processing "+ jobsWithActiveConfiguration.length  +" jobs ");
 	var result = {
 		jobs : d3.map(),
 		configurations : d3.map(),
@@ -36,7 +36,7 @@ function processJson(jobsWithActiveConfiguration, config) {
 		// job > configs > builds > artifacts > features > scenario
 		// scenarios > builds >
 		for ( var cIdx in job.activeConfigurations) {
-
+			
 			var activeConfiguration = job.activeConfigurations[cIdx];
 			activeConfiguration.builds.sort(function(a, b) {
 				// ensure builds are sorted anti-chrono
@@ -44,18 +44,17 @@ function processJson(jobsWithActiveConfiguration, config) {
 			});
 
 			for ( var bIdx in activeConfiguration.builds) {
+				console.log("processing "+ activeConfiguration.builds.length  +" executions of " + activeConfiguration.displayName);
 				// most recent build (aka last execution):
 				// only create scenario object from the most recent build
 				// this make the scenario that does not exist anymore in the
 				// scenario
 				// disappearing from the report
-				var createScenarioObject = (bIdx == 0);
 				var build = activeConfiguration.builds[bIdx];
-
 				for ( var aIdx in build.artifacts) {
 					var artifact = build.artifacts[aIdx];
 					processArtifact(config, job, activeConfiguration, build,
-							artifact, createScenarioObject);
+							artifact, true);
 				}
 
 			}
@@ -65,6 +64,8 @@ function processJson(jobsWithActiveConfiguration, config) {
 	result.scenarios = scenarioMap.values();
 	result.allScenarios = scenarioMap.values();
 	result.allKos = 0;
+	console.log("Extracted " + result.allScenarios.length + " scenarios !");
+	
 	// now, in each scenario, order the executions by timestamp
 	if (result.scenarios) {
 		result.scenarios.forEach(function(s) {
@@ -188,6 +189,8 @@ function processJson(jobsWithActiveConfiguration, config) {
 				return true;
 			});
 		}
+		
+		console.log("After Filters, there are " + result.scenarios.length + " scenarios remaining !");
 	}
 
 	return result;
