@@ -39,21 +39,23 @@ function processJson(jobsWithActiveConfiguration, config) {
 
 			var activeConfiguration = job.activeConfigurations[cIdx];
 			activeConfiguration.builds.sort(function(a, b) {
-				//ensure builds are sorted anti-chrono
+				// ensure builds are sorted anti-chrono
 				return parseInt(b.number) - parseInt(a.number);
 			});
-			
+
 			for ( var bIdx in activeConfiguration.builds) {
-				//most recent build (aka last execution):
-				//only create scenario object from the most recent build
-				//this make the scenario that does not exist anymore in the scenario
-				//disappearing from the report
-				var createScenarioObject = (bIdx==0);
+				// most recent build (aka last execution):
+				// only create scenario object from the most recent build
+				// this make the scenario that does not exist anymore in the
+				// scenario
+				// disappearing from the report
+				var createScenarioObject = (bIdx == 0);
 				var build = activeConfiguration.builds[bIdx];
 
 				for ( var aIdx in build.artifacts) {
 					var artifact = build.artifacts[aIdx];
-					processArtifact(config, job, activeConfiguration, build, artifact, createScenarioObject);
+					processArtifact(config, job, activeConfiguration, build,
+							artifact, createScenarioObject);
 				}
 
 			}
@@ -73,14 +75,15 @@ function processJson(jobsWithActiveConfiguration, config) {
 				});
 
 				// s.executions should be chronologically ordered
-
+				//compute severity and maturity
 				computeAnalysis(s);
 
 				var severity = s.severity.replace(/ /g, "_");
 				result.status[severity] += 1;
-				result.allKos += config.KO_STATUSES.indexOf(severity) > -1 ? 1 : 0;
+				result.allKos += config.KO_STATUSES.indexOf(severity) > -1 ? 1
+						: 0;
 			}
-			//
+			//compute the tags
 
 			if (s.scenario.tags) {
 				s.scenario.tagList = s.scenario.tags.map(function(d) {
@@ -94,11 +97,13 @@ function processJson(jobsWithActiveConfiguration, config) {
 					return "--tags " + d + "";
 				}).join(' ');
 			}
+			//FIXME: rerun
 			if (config.rerunJobName) {
 				s.actions = [ {
 					name : "Run",
 					url : "javascript:void(0)",
-					job : config.jenkinsUrl + "/job/" + config.rerunJobName + "/buildWithParameters",
+					job : config.jenkinsUrl + "/job/" + config.rerunJobName
+							+ "/buildWithParameters",
 					parameters : {
 						CUCUMBER_OPTIONS : tagsOptions
 					}
@@ -110,10 +115,13 @@ function processJson(jobsWithActiveConfiguration, config) {
 			result.jobs.set(s.job.name, !jobCount ? 1 : ++jobCount);
 
 			var featureCount = result.features.get(s.feature.name);
-			result.features.set(s.feature.name, !featureCount ? 1 : ++featureCount);
+			result.features.set(s.feature.name, !featureCount ? 1
+					: ++featureCount);
 
-			var configurationCount = result.configurations.get(s.configuration.name);
-			result.configurations.set(s.configuration.name, !configurationCount ? 1 : ++configurationCount);
+			var configurationCount = result.configurations
+					.get(s.configuration.name);
+			result.configurations.set(s.configuration.name,
+					!configurationCount ? 1 : ++configurationCount);
 
 		});
 
@@ -140,7 +148,7 @@ function processJson(jobsWithActiveConfiguration, config) {
 				result.ftagerror = e;
 			}
 		}
-
+		//filter the scenarios according to the filters set by the user 
 		if (hasFilters(config)) {
 			result.scenarios = result.scenarios.filter(function(scenario) {
 				if (fnameregexp && !scenario.scenario.name.match(fnameregexp)) {
@@ -160,16 +168,21 @@ function processJson(jobsWithActiveConfiguration, config) {
 						return false;
 					}
 				}
-				if (config.fjob && config.fjob != "All jobs" && scenario.job.name != config.fjob) {
+				if (config.fjob && config.fjob != "All jobs"
+						&& scenario.job.name != config.fjob) {
 					return false;
 				}
-				if (config.ffeature && config.ffeature != "All features" && scenario.feature.name != config.ffeature) {
+				if (config.ffeature && config.ffeature != "All features"
+						&& scenario.feature.name != config.ffeature) {
 					return false;
 				}
-				if (config.fconfig && config.fconfig != "All configs" && scenario.configuration.name != config.fconfig) {
+				if (config.fconfig && config.fconfig != "All configs"
+						&& scenario.configuration.name != config.fconfig) {
 					return false;
 				}
-				if (config.fstatus && config.fstatus.indexOf(scenario.severity.replace(/ /g, "_")) == -1) {
+				if (config.fstatus
+						&& config.fstatus.indexOf(scenario.severity.replace(
+								/ /g, "_")) == -1) {
 					return false;
 				}
 				return true;
@@ -181,8 +194,10 @@ function processJson(jobsWithActiveConfiguration, config) {
 }
 
 function hasFilters(config) {
-	return (config.fstatus && config.fstatus.length > 0) || !!config.fname || !!config.ftag || config.fjob && config.fjob != "All jobs"
-			|| config.fconfig && config.fconfig != "All configs" || config.ffeature && config.ffeature != "All features";
+	return (config.fstatus && config.fstatus.length > 0) || !!config.fname
+			|| !!config.ftag || config.fjob && config.fjob != "All jobs"
+			|| config.fconfig && config.fconfig != "All configs"
+			|| config.ffeature && config.ffeature != "All features";
 }
 
 function computeAnalysis(scenario) {
@@ -230,7 +245,8 @@ function computeAnalysis(scenario) {
 		// or REWORK
 		else {
 			maturity = "REWORK";
-			severity = currentStatus == "FAILURE" ? "PENDING" : ((isRecent ? "RECENTLY " : "") + "DONE");
+			severity = currentStatus == "FAILURE" ? "PENDING"
+					: ((isRecent ? "RECENTLY " : "") + "DONE");
 		}
 
 	} else {
@@ -263,7 +279,8 @@ function computeAnalysis(scenario) {
 	scenario.severity = severity;
 	scenario.maturity = maturity;
 }
-function getOrCreateScenarioRow(job, config, artifact, feature, scenario, forceScenarioCreation) {
+function getOrCreateScenarioRow(job, config, artifact, feature, scenario,
+		forceScenarioCreation) {
 	var key = job.name + "" + config.name + "" + scenario.id;
 	var value = scenarioMap.get(key);
 	if (!value && forceScenarioCreation) {
@@ -277,7 +294,7 @@ function getOrCreateScenarioRow(job, config, artifact, feature, scenario, forceS
 				id : feature.id,
 				name : feature.name,
 				fileName : feature.uri,
-				tags: feature.tags,
+				tags : feature.tags,
 			},
 			job : {
 				id : job.id,
@@ -306,7 +323,8 @@ function computeScenarioObject(configuration, build, scenario) {
 		duration : 0,
 		result : "SUCCESS",
 		timestamp : build.timestamp,
-		pending : false
+		pending : false,
+		steps: null
 	}
 
 	function computeResultAndAppendDuration(d) {
@@ -340,10 +358,13 @@ function computeScenarioObject(configuration, build, scenario) {
 		});
 	}
 
+	result.steps = scenario.steps;
+	
 	return result;
 }
 
-function createExecution(configuration, job, config, build, artifact, feature, scenario) {
+function createExecution(configuration, job, config, build, artifact, feature,
+		scenario) {
 
 	return {
 		build : build,
@@ -351,7 +372,8 @@ function createExecution(configuration, job, config, build, artifact, feature, s
 	};
 }
 
-function processArtifact(configuration, job, config, build, artifact, createScenario) {
+function processArtifact(configuration, job, config, build, artifact,
+		createScenario) {
 
 	// console.log(artifact);
 	// retrieve all the scenarios
@@ -370,14 +392,16 @@ function processArtifact(configuration, job, config, build, artifact, createScen
 			// after,before,description,id,keyword'"Scenario Outline"
 			// line,name,steps,tags,type="scenario"
 			// steps:
-			var scenarioRow = getOrCreateScenarioRow(job, config, artifact, feature, scenario,createScenario);
-			//scenario row can be null if it "disappeared" 
-			if(scenarioRow){
-				//create execution object
-				var execution = createExecution(configuration, job, config, build, artifact, feature, scenario);
+			var scenarioRow = getOrCreateScenarioRow(job, config, artifact,
+					feature, scenario, createScenario);
+			// scenario row can be null if it "disappeared"
+			if (scenarioRow) {
+				// create execution object
+				var execution = createExecution(configuration, job, config,
+						build, artifact, feature, scenario);
 				scenarioRow.executions.push(execution);
 				setOrNotLastExecution(scenarioRow, execution);
-				//count executions
+				// count executions
 				scenarioRow.executionCount++;
 				if (execution.scenario.result == "FAILURE") {
 					scenarioRow.failures++;
@@ -392,7 +416,8 @@ function processArtifact(configuration, job, config, build, artifact, createScen
 }
 
 function setOrNotLastExecution(scenario, execution) {
-	if (!scenario.lastExecution || scenario.lastExecution.scenario.timestamp < execution.scenario.timestamp) {
+	if (!scenario.lastExecution
+			|| scenario.lastExecution.scenario.timestamp < execution.scenario.timestamp) {
 		scenario.lastExecution = execution;
 	}
 }

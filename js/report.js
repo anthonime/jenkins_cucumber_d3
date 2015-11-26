@@ -245,23 +245,27 @@ function createActionsCell(td, actions) {
 	}
 }
 
-function createLastExecCell(td, row, lastExec) {
+function createLastExecCell(td, scenario, lastExec) {
 	if (!lastExec) {
 		td.text("n/a");
 	} else {
 		var color = lastExec.scenario.result == "FAILURE" ? "danger" : "success";
 		var classed = "label label-" + color;
 		var formattedTimestamp = timeFormat(new Date(lastExec.scenario.timestamp));
-		td.append("div").attr("class", classed).text(lastExec.scenario.result);
+		td.append("div").datum(scenario).attr("class", classed).text(lastExec.scenario.result)
+			.on("click",function(d){
+				showPopup(lastExec,scenario);
+			})
+			.style("cursor","pointer");
 		td.append("a").attr("href", lastExec.build.url).text("#" + lastExec.build.number);
 		td.append("br");
 		td.append("span").text(formattedTimestamp)
 		td.append("br");
 		td.append("span").text(formatDuration(lastExec.scenario.duration / 1000000));
 		td.append("br");
-		if (row.scenario.tags) {
+		if (scenario.scenario.tags) {
 			var tags = td.append("span").style("word-wrap","break-word");
-			tags.selectAll("a").data(row.scenario.tags).enter().append("a").attr("href", function(tag) {
+			tags.selectAll("a").data(scenario.scenario.tags).enter().append("a").attr("href", function(tag) {
 				return createHrefToCucumberReport(lastExec,tag);
 			}).text(function(tag) {
 				return " " + tag.name + " ";
@@ -285,22 +289,137 @@ function createExecProgress(td, scenario, executions) {
 		var progress = td.append("div").attr("class", "progress").style("min-width", "350px");
 
 		for ( var eIds in executions) {
-			var exec = executions[eIds];
+			var exec2 = executions[eIds];
 
-			var striped = exec.scenario.pending ? "progress-bar-striped" : "";
+			var striped = exec2.scenario.pending ? "progress-bar-striped" : "";
 
-			var color = "progress-bar-" + (exec.scenario.result == "FAILURE" ? "danger" : "success");
+			var color = "progress-bar-" + (exec2.scenario.result == "FAILURE" ? "danger" : "success");
 
 			// append a progress-bar part surrounded by a link to the build
-			var href = scenario.scenario.tags?createHrefToCucumberReport(exec,scenario.scenario.tags[0]):exec.build.url;
-			progress.append("a").attr("href", href).attr("title",
-					"Build " + scenario.job.name + " #" + exec.build.number + "<br>" + timeFormat(new Date(exec.build.timestamp))).append("div").attr(
-					"class", "progress-bar " + striped + " " + color).style("width", width + "%").style("border", "1px solid #777;");
-
+			//var href = scenario.scenario.tags?createHrefToCucumberReport(exec,scenario.scenario.tags[0]):exec.build.url;
+			var href = "javascript:void(0)";
+			progress.append("a")
+					.datum(exec2)
+					.attr("href", href)
+					.on("click",function(d){
+						showPopup(d,scenario);
+					})
+					.attr("title","Build " + scenario.job.name + " #" + exec2.build.number + "<br>" + timeFormat(new Date(exec2.build.timestamp)))
+					.append("div").attr("class", "progress-bar " + striped + " " + color)
+					.style("width", width + "%")
+					.style("border", "1px solid #777;");
+			
 		}
 
 	}
 }
+
+function showPopup(exec2, scenario){
+//	console.log("exec", exec2);
+//	console.log("scenario", scenario);
+	
+	var isFailure = exec2.scenario.result == "FAILURE";
+	$('#scenarioModalStatus').text((isFailure?"DANGER":"SUCCESS") + " " + formatDuration(exec2.scenario.duration/1000000)).toggleClass("label-danger",isFailure).toggleClass("label-success",!isFailure);
+	$('#scenarioModalTitle').text(scenario.scenario.name);
+	
+	//exec2.scenario.steps
+	
+	var stepData = exec2.scenario.steps;
+	
+	d3.select("#scenarioModalSteps tbody").remove();
+	
+	//show the steps
+	var tr = d3.select("#scenarioModalSteps").append("tbody")
+		.selectAll("tr").data(stepData)
+		.enter().append("tr")
+		.on("click",function(d,i){
+			if(d.result && d.result.status=="failed"){
+				appendErrorDetailsRow(d,i);
+			} else if(d.rows){
+				//append a row if there is for exemple a cucumber table to display
+				appendStepDetailsRow(d,i);
+			}
+		})
+		.classed("success",function(d){return d.result?d.result.status=="passed":false})
+		.classed("danger",function(d){return d.result?d.result.status=="failed":false})
+		//.style("border-left",function(d){return "3px solid " + (((d.result && d.result.status=="failed") || d.rows || d.embeddings) ?"#d9edf7":"transparent")})
+		.style("cursor",function(d){return ((d.result && d.result.status=="failed") || d.rows) ?"pointer":"default"});
+		
+	
+	tr.append("td").text(function(d){return d.result?d.keyword+ " " + d.name:""});
+	tr.append("td").text(function(d){return d.result?formatDuration(d.result.duration/1000000):""});
+		
+	//then append the embeddings
+	var embeddings = [];
+	stepData.forEach(function(d){
+		if(d.embeddings){
+			Array.prototype.push.apply(embeddings, d.embeddings);
+		}
+	});
+	tr = d3.select("#scenarioModalSteps tbody")
+	.selectAll("tr.embeddings").data(embeddings)
+	.enter().append("tr").classed("embeddings info",true);
+	
+	var td = tr.append("td").attr("colspan",2)
+		.append(function(d){
+			if(d.mime_type=="text/plain"){
+				return d3.select(document.createElement("a"))
+					.attr("href",atob(d.data))
+					.text(atob(d.data))
+					.style("max-width","850px")
+					.style("display","inline-block")
+					.style("word-wrap","break-word")
+					.node();
+			} else {
+				return d3.select(document.createElement("img"))
+				.attr("width","850px")
+				.attr("src","data:image/png;base64," + d.data)
+				.node();
+			}})
+	
+	$('#scenarioModal').modal();
+}
+
+
+function appendErrorDetailsRow(d,i){
+	var details = d3.select("#scenarioModalSteps tr.error-details");
+	if(details.size()==0){
+		details = d3.select("#scenarioModalSteps tbody")
+			.insert("tr","tr:nth-child(" + (i+2) + ")")
+			.classed("error-details",true);
+		details.append("td").attr("colspan",2)
+			.append("div").style("overflow","auto").style("max-height","500px")
+				.append("pre").append("code")
+				.classed("java",true)
+				.text(d.result?d.result.error_message:"NOTHING");
+	} else {
+		details.remove();
+	}
+}
+
+function appendStepDetailsRow(d,i){
+	var details = d3.select("#scenarioModalSteps tr.details");
+	if(details.size()==0){
+		details = d3.select("#scenarioModalSteps tbody")
+			.insert("tr","tr:nth-child(" + (i+2) + ")")
+			.classed("details",true);
+		var tr = details.append("td").attr("colspan",2)
+			.append("table").classed("table table-bordered table-condensed",true)
+			.append("tbody")
+			.selectAll("tr").data(d.rows)
+			.enter().append("tr")
+			.classed("success",function(d){return d.result?d.result.status=="passed":false})
+			.classed("danger",function(d){return d.result?d.result.status=="failed":false});
+		//
+		tr.selectAll("td")
+			.data(function(d){return d.cells})
+			.enter().append("td").text(function(d){return d});
+			
+	} else {
+		details.remove();
+	}
+}
+
 
 function formatDuration(durMs) {
 	var seconds = durMs / 1000;

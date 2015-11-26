@@ -2,7 +2,8 @@
 var JSON_API = "/api/json";
 var PARAM_DEPTH = "depth=";
 var PARAM_PRETTY = "pretty=true";
-var PARAM_BUILD_TREE = "tree=jobs[name,displayName,builds[number,result,url,timestamp,duration,artifacts[relativePath,fileName]],activeConfigurations[name,displayName,builds[number,result,url,timestamp,duration,artifacts[relativePath,fileName]]]]"
+var PARAM_JOB_TREE = "name,displayName,builds[number,result,url,timestamp,duration,artifacts[relativePath,fileName]],activeConfigurations[name,displayName,builds[number,result,url,timestamp,duration,artifacts[relativePath,fileName]]]";
+var PARAM_ALL_TREE = "jobs["+ PARAM_JOB_TREE +"]";
 
 var artifactMap = d3.map();
 var pendingFetches = 0;
@@ -41,17 +42,30 @@ function fetchBigJenkinsJson(config, callback, progressCallback, errorCallback) 
 	pendingFetches = 0;
 
 	// fetch the big Json containing all
-	var url = config.jenkinsUrl + JSON_API + "?" + depth(1) + "&"
-			+ (config.debug ? PARAM_PRETTY : "") + "&" + PARAM_BUILD_TREE;
+	var url = config.jenkinsUrl;
+	var query = "tree="+PARAM_ALL_TREE;
+	if(config.jobName){
+		///job/rtv-sel-parameterized-chrome/
+		url += "/job/" + config.jobName;
+		query = "tree="+PARAM_JOB_TREE;
+	} 
+	url += JSON_API + "?" + depth(1) + "&"
+			+ (config.debug ? PARAM_PRETTY : "") + "&" + query;
+	
 	progressCallback({
 		message : "fetch started..."
 	});
+	var theconfigishere = config;
 	console.log("Fetching main json from Jenkins API at ", url)
 	fetchJson(url,
 			function(data) {
 				progressCallback({
 					message : "got main JSON"
 				});
+				//if only one job, wrap the single response into an array
+				if(theconfigishere.jobName){
+					data.jobs = [data];
+				}
 				console.log("Total jobs count in Jenkins:" + data.jobs.length);
 				var jobs = extractJobsWithActiveConfigurations(data.jobs);
 				console.log("Jobs with active configuration:" + jobs.length);
@@ -88,6 +102,7 @@ function fetchBigJenkinsJson(config, callback, progressCallback, errorCallback) 
 									}, progressCallback);
 							if (hasArtifacts) {
 								filteredBuilds.push(build);
+							} else {
 							}
 						}
 
@@ -149,10 +164,6 @@ function createKey(job, config, build, relativePath) {
 
 function fetchBuildArtifacts(job, config, build, callback, errorCallback,
 		progressCallback) {
-	if(job.name.indexOf("rtv-sel-parameterized-chrome")!=0){
-		console.log("skipping job " + job.name );
-		return;
-	}
 	if (build.artifacts) {
 		var filteredArtifacts = [];
 		for ( var artifactIdx in build.artifacts) {

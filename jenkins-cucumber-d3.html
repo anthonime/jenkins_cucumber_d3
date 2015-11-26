@@ -16,6 +16,8 @@
 <script src="js/report.js" charset="utf-8"></script>
 <script src="js/fetch.js" charset="utf-8"></script>
 <script src="js/filters.js" charset="utf-8"></script>
+
+
 <style>
 </style>
 </head>
@@ -27,7 +29,8 @@
 					<svg xmlns="http://www.w3.org/2000/svg"
 						xmlns:xlink="http://www.w3.org/1999/xlink"
 						xmlns:sketch="http://www.bohemiancoding.com/sketch/ns"
-						width="27px" height="32px" viewBox="0 0 27 32" version="1.1" style="margin-top:-6px">
+						width="27px" height="32px" viewBox="0 0 27 32" version="1.1"
+						style="margin-top: -6px">
     <!-- Generator: Sketch 3.2.2 (9983) - http://www.bohemiancoding.com/sketch -->
     <title>rect4005</title>
     <desc>Created with Sketch.</desc>
@@ -54,6 +57,14 @@
 							placeholder="Jenkins URL...">
 					</div>
 				</form>
+				<div class="navbar-text">Job name:</div>
+				<form class="navbar-form navbar-left">
+					<div class="form-group">
+						<input id="job_name" type="text" class="form-control"
+							placeholder="Job name...">
+					</div>
+				</form>
+				
 				<div class="navbar-text">Pending tag name:</div>
 				<form class="navbar-form navbar-left">
 					<div class="form-group">
@@ -156,6 +167,36 @@
 		</div>
 	</div>
 	<div id="scenarios"></div>
+
+	<!-- Modal -->
+	<button type="button" class="btn btn-primary btn-lg"
+		data-toggle="modal" data-target="#scenarioModal">Launch
+		scenario modal</button>
+	<div class="modal" id="scenarioModal" tabindex="-1" role="dialog"
+		aria-labelledby="scenarioModalTitle">
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<span class="label" id="scenarioModalStatus"></span>
+					<h5 class="modal-title" id="scenarioModalTitle"/>
+				</div>
+				<div class="modal-body">
+					<table class="table" id="scenarioModalSteps">
+						<tbody>
+						</tbody>
+					</table>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 	<script
 		src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
@@ -185,10 +226,12 @@
 			currentParams = jQuery.extend(true, {}, params);
 
 			//append the list of KO statuses to the config
-			config.KO_STATUSES = [ "REGRESSION", "PERSISTENT_REGRESSION", "KO", "PENDING", "RANDOMNESS" ];
+			config.KO_STATUSES = [ "REGRESSION", "PERSISTENT_REGRESSION", "KO",
+					"PENDING", "RANDOMNESS" ];
 			if (!config.jenkinsUrl) {
 				//default 
-				config.jenkinsUrl = window.location.protocol + "//" + window.location.host;
+				config.jenkinsUrl = window.location.protocol + "//"
+						+ window.location.host;
 			}
 			if (!config.pendingTagName) {
 				config.pendingTagName = "@pending";
@@ -202,48 +245,59 @@
 				params.fstatus = [ params.fstatus ];
 			}
 			//status
-			d3.select("#filters-status").selectAll("a").classed("active", function(d) {
-				if (!params.fstatus) {
-					return false;
-				}
-				var s = d3.select(this).attr("data-status");
-				return params.fstatus.indexOf(s) > -1;
-			});
+			d3.select("#filters-status").selectAll("a").classed("active",
+					function(d) {
+						if (!params.fstatus) {
+							return false;
+						}
+						var s = d3.select(this).attr("data-status");
+						return params.fstatus.indexOf(s) > -1;
+					});
 			//name
-			d3.select("#fname").property("value", params.fname ? params.fname : "");
-			d3.select("#ftag").property("value", params.ftag ? params.ftag : "");
-			d3.select("#jenkins_url").property("value", params.jenkinsUrl ? params.jenkinsUrl : "");
-			d3.select("#pendingTagName").property("value", params.pendingTagName ? params.pendingTagName : "");
-			d3.select("#rerunJobName").property("value", params.rerunJobName ? params.rerunJobName : "");
+			d3.select("#fname").property("value",
+					params.fname ? params.fname : "");
+			d3.select("#ftag")
+					.property("value", params.ftag ? params.ftag : "");
+			d3.select("#jenkins_url").property("value",
+					params.jenkinsUrl ? params.jenkinsUrl : "");
+			d3.select("#job_name").property("value",
+					params.jobName ? params.jobName : "");
+			d3.select("#pendingTagName").property("value",
+					params.pendingTagName ? params.pendingTagName : "");
+			d3.select("#rerunJobName").property("value",
+					params.rerunJobName ? params.rerunJobName : "");
 			update();
 		}
 
 		//listens for filter changes
-		d3.selectAll("#filters-status a").on("click", function(e) {
-			var btn = d3.select(this);
-			var status = btn.attr("data-status");
-			var active = !btn.classed("active");
+		d3.selectAll("#filters-status a").on(
+				"click",
+				function(e) {
+					var btn = d3.select(this);
+					var status = btn.attr("data-status");
+					var active = !btn.classed("active");
 
-			if (status == "ALL") {
-				currentParams.fstatus = [];
-			} else if (status == "ALL_KOS") {
-				//copy 
-				currentParams.fstatus = config.KO_STATUSES.slice();
-			} else {
-				if (!currentParams.fstatus) {
-					currentParams.fstatus = [];
-				}
-				//remove the element from the array
-				currentParams.fstatus = currentParams.fstatus.filter(function(d) {
-					return d != status;
+					if (status == "ALL") {
+						currentParams.fstatus = [];
+					} else if (status == "ALL_KOS") {
+						//copy 
+						currentParams.fstatus = config.KO_STATUSES.slice();
+					} else {
+						if (!currentParams.fstatus) {
+							currentParams.fstatus = [];
+						}
+						//remove the element from the array
+						currentParams.fstatus = currentParams.fstatus
+								.filter(function(d) {
+									return d != status;
+								});
+						if (active) {
+							//add it if necessary
+							currentParams.fstatus.push(status);
+						}
+					}
+					jQuery.bbq.pushState(currentParams);
 				});
-				if (active) {
-					//add it if necessary
-					currentParams.fstatus.push(status);
-				}
-			}
-			jQuery.bbq.pushState(currentParams);
-		});
 
 		d3.select("#fname").on("blur", function(e) {
 			var v = $("#fname").val();
@@ -263,6 +317,14 @@
 			}
 			jQuery.bbq.pushState(currentParams);
 		});
+		d3.select("#job_name").on("blur", function(e) {
+			var jobName = $(this).val();
+			if (jobName != currentParams.jobName) {
+				currentParams.jobName = jobName;
+				remoteData = null;
+			}
+			jQuery.bbq.pushState(currentParams);
+		});
 		d3.select("#pendingTagName").on("blur", function(e) {
 			var pendingTagName = $(this).val();
 			if (pendingTagName != currentParams.pendingTagName) {
@@ -278,14 +340,17 @@
 			jQuery.bbq.pushState(currentParams);
 		});
 
-		d3.select("#filters-category").selectAll("select").on("change", function(e) {
-			var v = this.value;
-			currentParams[this.name] = v;
-			jQuery.bbq.pushState(currentParams);
-		});
+		d3.select("#filters-category").selectAll("select").on("change",
+				function(e) {
+					var v = this.value;
+					currentParams[this.name] = v;
+					jQuery.bbq.pushState(currentParams);
+				});
 
 		function showMessage(message, danger) {
-			d3.select("#debugContainer").classed("alert-danger", danger ? true : false).classed("alert-info", danger ? false : true);
+			d3.select("#debugContainer").classed("alert-danger",
+					danger ? true : false).classed("alert-info",
+					danger ? false : true);
 			d3.select("#debug").text(message);
 
 		}
@@ -297,30 +362,41 @@
 				d3.select("#scenarios").selectAll("*").remove();
 				d3.select("#progressbar").style("display", "block");
 				d3.select("#progress").style("width", "0%").text("0%");
-				fetchBigJenkinsJson(config, function(o) {
-					d3.select("#progressbar").style("display", "none");
-					fetching = false;
-					remoteData = o;
-					console.log("data fetched from jenkins " + remoteData);
-					refresh();
-				},
+				fetchBigJenkinsJson(
+						config,
+						function(o) {
+							d3.select("#progressbar").style("display", "none");
+							fetching = false;
+							remoteData = o;
+							console.log("data fetched from jenkins "
+									+ remoteData);
+							refresh();
+						},
 						function(callbackDetails) {
 							if (callbackDetails.totalFetches) {
 								var percent = (100 * (callbackDetails.alreadyFetched / callbackDetails.totalFetches)) | 0;
-								d3.select("#progress").style("width", percent + "%").text(percent + "%");
+								d3.select("#progress").style("width",
+										percent + "%").text(percent + "%");
 							}
-							d3.select("#debug")
+							d3
+									.select("#debug")
 									.text(
 											callbackDetails.message
-													+ (callbackDetails.totalFetches ? (" (" + callbackDetails.alreadyFetched + "/"
-															+ callbackDetails.totalFetches + ") (remaining:"
-															+ callbackDetails.pendingFetches + ")") : ''));
+													+ (callbackDetails.totalFetches ? (" ("
+															+ callbackDetails.alreadyFetched
+															+ "/"
+															+ callbackDetails.totalFetches
+															+ ") (remaining:"
+															+ callbackDetails.pendingFetches + ")")
+															: ''));
 
 						}, function(error) {
 							d3.select("#progressbar").style("display", "none");
 							fetching = false;
 							remoteData = null;
-							showMessage("Impossible to fetch JSON from Jenkins (see console logs): " + error, true);
+							showMessage(
+									"Impossible to fetch JSON from Jenkins (see console logs): "
+											+ error, true);
 						});
 			} else {
 				refresh();
@@ -332,7 +408,8 @@
 
 			updateFacets(result);
 
-			d3.select("#debug").text(result.scenarios.length + " scenarios found!");
+			d3.select("#debug").text(
+					result.scenarios.length + " scenarios found!");
 			showScenarios(d3.select("#scenarios").node(), result.scenarios);
 		}
 
@@ -351,42 +428,54 @@
 				}
 			});
 
-			d3.select("#filters-name").classed("has-error", !!result.fnameerror).attr("title", result.fnameerror);
+			d3.select("#filters-name")
+					.classed("has-error", !!result.fnameerror).attr("title",
+							result.fnameerror);
 
 			//jobs
-			var jobFilter = d3.selectAll("#fjob").selectAll("option").data(result.jobs.entries(), function(o, i) {
-				return o ? o.key : this.key;
-			});
+			var jobFilter = d3.selectAll("#fjob").selectAll("option").data(
+					result.jobs.entries(), function(o, i) {
+						return o ? o.key : this.key;
+					});
 			jobFilter.enter().append("option");
 			jobFilter.text(function(d) {
 				return d.key + '(' + d.value + ')';
 			}).attr("value", function(d) {
 				return d.key;
 			});
-			d3.select("#fjob").property("value", !currentParams.fjob ? "All jobs" : currentParams.fjob);
+			d3.select("#fjob").property("value",
+					!currentParams.fjob ? "All jobs" : currentParams.fjob);
 
 			//features
-			var featureFilter = d3.selectAll("#ffeature").selectAll("option").data(result.features.entries(), function(o, i) {
-				return o ? o.key : this.key;
-			});
+			var featureFilter = d3.selectAll("#ffeature").selectAll("option")
+					.data(result.features.entries(), function(o, i) {
+						return o ? o.key : this.key;
+					});
 			featureFilter.enter().append("option");
 			featureFilter.text(function(d) {
 				return d.key + '(' + d.value + ')';
 			}).attr("value", function(d) {
 				return d.key;
 			});
-			d3.select("#ffeature").property("value", !currentParams.ffeature ? "All features" : currentParams.ffeature);
+			d3.select("#ffeature").property(
+					"value",
+					!currentParams.ffeature ? "All features"
+							: currentParams.ffeature);
 			//configs
-			var configFilter = d3.selectAll("#fconfig").selectAll("option").data(result.configurations.entries(), function(o, i) {
-				return o ? o.key : this.key;
-			});
+			var configFilter = d3.selectAll("#fconfig").selectAll("option")
+					.data(result.configurations.entries(), function(o, i) {
+						return o ? o.key : this.key;
+					});
 			configFilter.enter().append("option");
 			configFilter.text(function(d) {
 				return d.key + '(' + d.value + ')';
 			}).attr("value", function(d) {
 				return d.key;
 			});
-			d3.select("#fconfig").property("value", !currentParams.fconfig ? "All configs" : currentParams.fconfig);
+			d3.select("#fconfig").property(
+					"value",
+					!currentParams.fconfig ? "All configs"
+							: currentParams.fconfig);
 
 		}
 	</script>
