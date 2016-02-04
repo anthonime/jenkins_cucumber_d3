@@ -2,7 +2,9 @@
 var JSON_API = "/api/json";
 var PARAM_DEPTH = "depth=";
 var PARAM_PRETTY = "pretty=true";
-var PARAM_JOB_TREE = "name,displayName,builds[number,result,url,timestamp,duration,artifacts[relativePath,fileName]],activeConfigurations[name,displayName,builds[number,result,url,timestamp,duration,artifacts[relativePath,fileName]]]";
+var PARAM_JOB_TREE = "name,displayName,"+
+"builds[number,result,url,timestamp,duration,artifacts[relativePath,fileName],actions[parameters[name,value]]]," +
+"activeConfigurations[name,displayName,builds[number,result,url,timestamp,duration,artifacts[relativePath,fileName],actions[parameters[name,value]]]]";
 var PARAM_ALL_TREE = "jobs["+ PARAM_JOB_TREE +"]";
 
 var artifactMap = d3.map();
@@ -85,6 +87,14 @@ function fetchBigJenkinsJson(config, callback, progressCallback, errorCallback) 
 						var filteredBuilds = [];
 						for ( var bIdx in config.builds) {
 							var build = config.builds[bIdx];
+							
+							// Filter the builds that doesn't correspond to the wanted branch
+							branchName = getBranchName(build.actions[0].parameters);
+							if (branchName && branchName != theconfigishere.branchName) {
+								continue;
+							}
+							
+							// Filter the builds that doesn't have json artifact
 							var hasArtifacts = fetchBuildArtifacts(job, config,
 									build, function(d) {
 										// when everything is fetched, return
@@ -123,10 +133,49 @@ function fetchBigJenkinsJson(config, callback, progressCallback, errorCallback) 
 			}, errorCallback);
 }
 
+function getBranchName(parameters) {
+	for(idP in parameters) {
+		parameter = parameters[idP];
+		if(parameter.name == "BRANCH_NAME") {
+			return parameter.value;
+		}
+	}
+	return "";
+}
+
 // ============ Process JSON =============
 
 function extractJobsWithActiveConfigurations(jobs) {
 
+	return jobs.filter(function(job) {
+		// also append a fake configuration if the job has some artifacts
+		var hasArtifacts = false;
+		if (job.builds) {
+			job.builds.forEach(function(build) {
+				if (build.artifacts && build.artifacts.length > 0) {
+					hasArtifacts = true;
+				}
+			})
+		}
+		if (hasArtifacts) {
+			// create a "no config" object for artifacts that are not in a
+			// configuration
+			var fakeConfig = {
+				name : "no config",
+				displayName : "no config",
+				url : "javascript:void(0)"
+			};
+			fakeConfig.builds = job.builds;
+			if (!job.activeConfigurations) {
+				job.activeConfigurations = [];
+			}
+			job.activeConfigurations.push(fakeConfig);
+		}
+		return hasArtifacts || !!job.activeConfigurations;
+	});
+}
+
+function addParametersToActiveConfigurations(jobs) {
 	return jobs.filter(function(job) {
 		// also append a fake configuration if the job has some artifacts
 		var hasArtifacts = false;
