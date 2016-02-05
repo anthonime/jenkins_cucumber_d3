@@ -175,35 +175,6 @@ function extractJobsWithActiveConfigurations(jobs) {
 	});
 }
 
-function addParametersToActiveConfigurations(jobs) {
-	return jobs.filter(function(job) {
-		// also append a fake configuration if the job has some artifacts
-		var hasArtifacts = false;
-		if (job.builds) {
-			job.builds.forEach(function(build) {
-				if (build.artifacts && build.artifacts.length > 0) {
-					hasArtifacts = true;
-				}
-			})
-		}
-		if (hasArtifacts) {
-			// create a "no config" object for artifacts that are not in a
-			// configuration
-			var fakeConfig = {
-				name : "no config",
-				displayName : "no config",
-				url : "javascript:void(0)"
-			};
-			fakeConfig.builds = job.builds;
-			if (!job.activeConfigurations) {
-				job.activeConfigurations = [];
-			}
-			job.activeConfigurations.push(fakeConfig);
-		}
-		return hasArtifacts || !!job.activeConfigurations;
-	});
-}
-
 // ============ Cucumber JSON =============
 
 function createKey(job, config, build, relativePath) {
