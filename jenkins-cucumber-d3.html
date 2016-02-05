@@ -64,7 +64,6 @@
 							placeholder="Job name...">
 					</div>
 				</form>
-				
 				<div class="navbar-text">Pending tag name:</div>
 				<form class="navbar-form navbar-left">
 					<div class="form-group">
@@ -72,6 +71,13 @@
 							placeholder="Tag name to identify pending scenarios">
 					</div>
 				</form>
+                <div class="navbar-text">Branch name:</div>
+                <form class="navbar-form navbar-left">
+                    <div class="form-group">
+                        <input id="branchName" type="text" class="form-control"
+                            placeholder="Git branch name...">
+                    </div>
+                </form>
 				<div class="navbar-text">Rerun job name:</div>
 				<form class="navbar-form navbar-left">
 					<div class="form-group">
@@ -264,6 +270,8 @@
 					params.jobName ? params.jobName : "");
 			d3.select("#pendingTagName").property("value",
 					params.pendingTagName ? params.pendingTagName : "");
+			d3.select("#branchName").property("value",
+					params.branchName ? params.branchName : "");
 			d3.select("#rerunJobName").property("value",
 					params.rerunJobName ? params.rerunJobName : "");
 			update();
@@ -332,6 +340,13 @@
 			}
 			jQuery.bbq.pushState(currentParams);
 		});
+        d3.select("#branchName").on("blur", function(e) {
+            var branchName = $(this).val();
+            if (branchName != currentParams.branchName) {
+                currentParams.branchName = branchName;
+            }
+            jQuery.bbq.pushState(currentParams);
+        });
 		d3.select("#rerunJobName").on("blur", function(e) {
 			var rerunJobName = $(this).val();
 			if (rerunJobName != currentParams.rerunJobName) {
