@@ -90,7 +90,7 @@ function fetchBigJenkinsJson(config, callback, progressCallback, errorCallback) 
 							
 							// Filter the builds that doesn't correspond to the wanted branch
 							branchName = getBranchName(build.actions[0].parameters);
-							if (branchName && branchName != theconfigishere.branchName) {
+							if (branchName && theconfigishere.branchName && branchName != theconfigishere.branchName) {
 								continue;
 							}
 							
