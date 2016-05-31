@@ -321,11 +321,12 @@ function getOrCreateScenarioRow(job, config, artifact, feature, scenario,
 	return value;
 }
 
-function computeScenarioObject(configuration, build, scenario) {
+function computeScenarioObject(configuration, build, scenario, startTimestamp) {
 	var result = {
 		duration : 0,
 		result : "SUCCESS",
-		timestamp : build.timestamp,
+		timestamp : startTimestamp,
+		startTime : startTimestamp,
 		pending : false,
 		steps: null
 	}
@@ -360,18 +361,22 @@ function computeScenarioObject(configuration, build, scenario) {
 			result.pending |= (tag.name == configuration.pendingTagName);
 		});
 	}
-
+	
+	//update endTime
+	result.endTime = result.startTime + (result.duration/1000000);
+    
+	
 	result.steps = scenario.steps;
 	
 	return result;
 }
 
 function createExecution(configuration, job, config, build, artifact, feature,
-		scenario) {
-
+		scenario, startTimestamp) {
+    
 	return {
 		build : build,
-		scenario : computeScenarioObject(configuration, build, scenario)
+		scenario : computeScenarioObject(configuration, build, scenario, startTimestamp)
 	};
 }
 
@@ -385,7 +390,7 @@ function processArtifact(configuration, job, config, build, artifact,
 		console.log("cannot process artifact ", artifact);
 		return;
 	}
-
+	var startTimestamp = build.timestamp;
 	artifact.contents.forEach(function(feature) {
 		if (!feature.elements) {
 			return;
@@ -401,7 +406,14 @@ function processArtifact(configuration, job, config, build, artifact,
 			if (scenarioRow) {
 				// create execution object
 				var execution = createExecution(configuration, job, config,
-						build, artifact, feature, scenario);
+						build, artifact, feature, scenario, startTimestamp);
+				//increment the start time of the scenario
+				if(!isNaN(execution.scenario.duration)){
+				    //duration is in nano => convert to millis
+				    startTimestamp += (execution.scenario.duration/1000000);
+				}
+				
+				
 				scenarioRow.executions.push(execution);
 				setOrNotLastExecution(scenarioRow, execution);
 				// count executions

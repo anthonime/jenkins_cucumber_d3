@@ -13,7 +13,10 @@ var totalFetches = 0;
 var alreadyFetched = 0;
 
 function fetchJson(url, callback, errorCallback) {
-	d3.json(url, function(error, json) {
+	d3.json(url)
+	    //.header("Access-Control-Allow-Origin", "http://127.0.0.1")
+	    //.header("Access-Control-Allow-Origin", "null")
+	    .get(function(error, json) {
 		if (error) {
 			if (errorCallback) {
 				errorCallback(error);

@@ -73,7 +73,129 @@ var testData = [ {
 } ];
 
 var timeFormat = null;
-function showScenarios(node, data) {
+var allScenarios = null;
+
+
+
+function appendConcurrentScenariosView(exec2){
+    var around = 1000 * 60 * 1;
+    //
+    var start = exec2.scenario.startTime - around;
+    var end = exec2.scenario.endTime + around;
+    
+    //2 minutes around
+    
+    
+    var execAround = new Array();
+    console.log("find all scenarios among " + allScenarios.length + " which are between " + start + " and " + end);
+    allScenarios.forEach(function(i){
+        //console.log(i);
+        i.executions.forEach(function(e){
+//            console.log(e);
+            var estart = e.scenario.startTime;
+            var eend = e.scenario.endTime;
+            //console.log(" " + (estart<end)  + " " + (eend > start) + " " + estart  +" " + eend);
+            if(estart<end && eend > start) {
+                execAround.push(e);
+                //HACK do that before: 
+                e.scenario.name = i.scenario.name;
+                //e.scenario.name = i.scenario.name;
+            }
+        });
+    });
+    
+    console.log("Got " + execAround.length + " executions around :");
+    console.log(execAround);
+    
+    drawExecAroundChart(exec2, execAround);
+}
+
+
+function drawExecAroundChart(exec2, execAround){
+    
+    var margin = {top: 40, right: 40, bottom: 40, left:60},
+        width = 870,
+        height = 200;
+    
+    
+  //find the min and max of all scenarios
+    var min = d3.min(execAround, function(i){return i.scenario.startTime});
+    var max = d3.max(execAround, function(i){return i.scenario.endTime});
+    var buildNumbers = d3.nest().key(function(i){return "#" + i.build.number}).map(execAround, d3.map).keys();
+    
+    console.log("min " + min);
+    console.log("max " + max);
+    
+
+    var x = d3.time.scale()
+        .domain([new Date(min), new Date(max)])
+        .range([0, width - margin.left - margin.right]);
+
+    var y = d3.scale.ordinal()
+        .domain(buildNumbers)
+        .rangeBands([height - margin.top - margin.bottom, 0], 0.1, 0);
+
+    var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient('bottom')
+    .ticks(d3.time.second, 15)
+    .tickFormat(d3.time.format('%H:%M:%S'))
+    .tickSize(5)
+    .tickPadding(0);
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient('left')
+    .tickPadding(8);
+
+//remove svg 
+
+d3.select('#scenarioModalAround svg').remove();
+
+var svg = d3.select('#scenarioModalAround')
+     .append("svg")
+    .attr('class', 'chart')
+    .attr('width', width)
+    .attr('height', height)
+        .append('g')
+        .attr('transform', 'translate(' + margin.left + ', ' + margin.top + ')');
+
+svg.append('g')
+    .attr('class', 'x axis')
+    .attr('transform', 'translate(0, ' + (height - margin.top - margin.bottom) + ')')
+    .call(xAxis);
+
+svg.append('g')
+  .attr('class', 'y axis')
+  .call(yAxis);
+
+
+var bars = svg.selectAll('.bar')
+    .data(execAround);
+    
+bars.enter().append('rect')
+        .attr('class', 'bar')
+        .append("title");
+bars
+    .attr('x', function(d) { return x(new Date(d.scenario.startTime)); })
+    .attr('y', function(d) { return y("#" + d.build.number) })
+    .attr('width', function(d) { 
+        return x(new Date(d.scenario.endTime)) - x(new Date(d.scenario.startTime)) 
+     } )
+    .attr('height', function(d) { return y.rangeBand() })
+    .classed("success",function(d){return d.scenario.result?d.scenario.result=="SUCCESS":false})
+    .classed("danger",function(d){return d.scenario.result?d.scenario.result=="FAILURE":false})
+    .classed("selected",function(d){return d==exec2;})
+    .on("click",function(d){showPopup(d, d)});
+
+bars.select("title").text(function(d){ console.log("title ",d); return d.scenario.name })
+    
+}
+
+
+
+function showScenarios(node, data, all) {
+    allScenarios = all;
 	timeFormat = d3.time.format("%d/%m/%y %H:%M:%S");
 
 	// clear all
@@ -377,6 +499,11 @@ function showPopup(exec2, scenario){
 				.node();
 			}})
 	
+    //try to show which scenario were in parallel
+    appendConcurrentScenariosView(exec2);
+			
+			
+			
 	$('#scenarioModal').modal();
 }
 
@@ -419,6 +546,8 @@ function appendStepDetailsRow(d,i){
 		details.remove();
 	}
 }
+
+
 
 
 function formatDuration(durMs) {

@@ -60,3 +60,34 @@ navbar-text{
 #scenarios .lastExecution{
 	max-width: 150px;
 } 
+
+
+#scenarioModalAround {
+    font-family: Arial, sans-serif;
+    font-size: 10px;
+}
+#scenarioModalAround .axis path, #scenarioModalAround .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+  }
+
+#scenarioModalAround  .bar {
+    fill: #ddd;
+    cursor: pointer;
+    stroke-width: 1px;
+    stroke: #777;
+  }
+  
+#scenarioModalAround  .bar.success{
+    fill: #5cb85c;
+  }
+  
+  #scenarioModalAround  .bar.danger{
+    fill: #d9534f;
+  }
+  
+  #scenarioModalAround  .bar.selected{
+    stroke: #fbce04;
+    stroke-width: 3px;
+  }
